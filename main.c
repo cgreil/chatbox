@@ -5,6 +5,10 @@
 
 #include <sys/wait.h>
 #include <sys/types.h>
+#include <string.h>
+
+#include "server/server.h"
+#include "client/client.h"
 
 #define NUM_PROCESSES 2
 
@@ -13,13 +17,9 @@
 #define BUFFER_SIZE 512
 
 
-
-
 void create_processes(size_t num_processes, pid_t child_pids[NUM_PROCESSES]);
 
-bool is_main_process(const pid_t child_pids[NUM_PROCESSES]);
-
-void receive_message(const int *client_to_server, const int *server_to_client);
+static bool is_main_process(const pid_t child_pids[NUM_PROCESSES]);
 
 void wait_children_and_exit();
 
@@ -42,57 +42,22 @@ int main() {
 
     bool is_main = is_main_process(process_ids);
     if(is_main) {
-        receive_message(client_to_server, server_to_client);
+        prepare_server(client_to_server, server_to_client);
         wait_children_and_exit();
     }
     else {
-
-
+        prepare_client(client_to_server, server_to_client);
     }
-
-
     return 0;
-
 }
 
 void wait_children_and_exit() {
     int wait_status = 0;
-    printf("Waiting for children \n");
+    printf("Waiting for children\n");
     while ((wait(&wait_status)) > 0);
     printf("finished waiting");
     // server cleanup
     exit(EXIT_SUCCESS);
-}
-
-void receive_message(const int *client_to_server, const int *server_to_client) {
-    char buffer[BUFFER_SIZE];
-    close(client_to_server[WRITE_END]);
-    close(server_to_client[READ_END]);
-    char next_char;
-    unsigned int char_count = 0;
-    while(true) {
-        ssize_t num_read = read(client_to_server[READ_END], &next_char, 1);
-        if (num_read == -1) {
-            fprintf(stderr, "Error reading from pipe. \n");
-            return;
-        }
-        else if (num_read == 0) {
-            continue;
-        }
-
-        if(next_char == '\0') {
-            break;
-        }
-        else if (char_count >= BUFFER_SIZE) {
-            fprintf(stderr, "Server: Read message size larger than buffer size.");
-            return;
-        }
-        else {
-            buffer[char_count] = next_char;
-            char_count++;
-        }
-    }
-    fprintf(stdout, "Server received message: %s", buffer);
 }
 
 void create_processes(size_t num_processes, pid_t child_pids[NUM_PROCESSES]) {
@@ -119,7 +84,7 @@ void create_processes(size_t num_processes, pid_t child_pids[NUM_PROCESSES]) {
     }
 }
 
-bool is_main_process(const pid_t child_pids[NUM_PROCESSES]) {
+static bool is_main_process(const pid_t child_pids[NUM_PROCESSES]) {
     for (size_t i = 0; i < NUM_PROCESSES; ++i) {
         if (child_pids[i] == 0) {
             return false;

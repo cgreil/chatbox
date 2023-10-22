@@ -1,0 +1,8 @@
+# ninja log v5
+1	21	1697958894312051695	CMakeFiles/communication.dir/server/server.c.o	cab430c1fb8013c9
+1	21	1697958894320051725	CMakeFiles/communication.dir/main.c.o	fdec8689d397c95a
+21	33	1697958894332051770	communication	44f88394ae52f23
+0	15	1697959386898356909	build.ninja	330721806437b0a2
+0	24	1697959403618447093	CMakeFiles/communication.dir/main.c.o	fdec8689d397c95a
+0	24	1697959403614447070	CMakeFiles/communication.dir/client/client.c.o	cb7a1e66c87f7d97
+24	36	1697959403634447179	communication	f8ffeea9f8c9d78d
