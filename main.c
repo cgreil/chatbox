@@ -4,17 +4,12 @@
 #include <stdbool.h>
 
 #include <sys/wait.h>
-#include <sys/types.h>
-#include <string.h>
 
+#include "util/connection.h"
 #include "server/server.h"
 #include "client/client.h"
 
 #define NUM_PROCESSES 2
-
-#define READ_END 0
-#define WRITE_END 1
-#define BUFFER_SIZE 512
 
 
 void create_processes(size_t num_processes, pid_t child_pids[NUM_PROCESSES]);
@@ -36,17 +31,20 @@ int main() {
         fprintf(stderr, "Server to Client communication could not be establishes. Exiting. \n");
         exit(EXIT_FAILURE);
     }
+    // TODO: improve
+    connection_t connection = {(int **) &client_to_server, (int **) &server_to_client};
+
 
     pid_t process_ids[NUM_PROCESSES];
     create_processes(NUM_PROCESSES, process_ids);
 
     bool is_main = is_main_process(process_ids);
     if(is_main) {
-        prepare_server(client_to_server, server_to_client);
+        prepare_server(connection);
         wait_children_and_exit();
     }
     else {
-        prepare_client(client_to_server, server_to_client);
+        prepare_client(connection);
     }
     return 0;
 }

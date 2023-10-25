@@ -1,18 +1,29 @@
 #include <stdio.h>
 #include <unistd.h>
 #include <stdbool.h>
+#include <string.h>
 #include "server.h"
+#include "../util/connection.h"
+
 
 #define BUFFER_SIZE 512
 
 #define READ_END 0
 #define WRITE_END 1
 
-void prepare_server(const int *client_to_server, const int *server_to_client) {
+void prepare_server(connection_t connection) {
+    const int *client_to_server = (const int *) connection.client_to_server;
+    const int *server_to_client = (const int *) connection.server_to_client;
+
     close(client_to_server[WRITE_END]);
     close(server_to_client[READ_END]);
 
     receive_message_from_client(client_to_server);
+}
+
+void listen_to_messages() {
+    // TODO
+
 }
 
 void receive_message_from_client(const int *client_to_server) {

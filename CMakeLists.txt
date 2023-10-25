@@ -6,7 +6,7 @@ set(CMAKE_C_STANDARD 11)
 add_executable(communication
         main.c
         client/client.h
-        connection.h
+        util/connection.h
         server/server.h
         server/server.c
         client/client.c)
