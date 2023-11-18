@@ -3,8 +3,8 @@
 
 
 typedef struct connection {
-    int **client_to_server;
-    int **server_to_client;
+    int *client_to_server;
+    int *server_to_client;
 } connection_t;
 
 

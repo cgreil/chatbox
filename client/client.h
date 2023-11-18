@@ -16,9 +16,11 @@
 #define OUTPUT_CHANNEL stdout
 #define ERROR_CHANNEL stderr
 
+#define MAX_USERNAME_SIZE 64
+
 enum ACTION {
-    ENTER_MESSAGE = 0,
-    CHOOSE_CHANNEL = 1,
+    SEND_MESSAGE = 0,
+    CHOOSE_USERNAME = 1,
     QUIT = 2,
     INVALID = 3
 };
@@ -33,8 +35,11 @@ void show_menu();
 
 enum ACTION get_user_action();
 
+void handle_action(enum ACTION action, const int *client_to_server);
 
+void clear_screen();
 
+void start_client(connection_t connection);
 
 
 

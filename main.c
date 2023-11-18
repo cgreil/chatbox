@@ -9,7 +9,7 @@
 #include "server/server.h"
 #include "client/client.h"
 
-#define NUM_PROCESSES 2
+#define NUM_PROCESSES 1
 
 
 void create_processes(size_t num_processes, pid_t child_pids[NUM_PROCESSES]);
@@ -32,19 +32,23 @@ int main() {
         exit(EXIT_FAILURE);
     }
     // TODO: improve
-    connection_t connection = {(int **) &client_to_server, (int **) &server_to_client};
+    connection_t connection = {client_to_server, server_to_client};
 
 
     pid_t process_ids[NUM_PROCESSES];
     create_processes(NUM_PROCESSES, process_ids);
 
+
     bool is_main = is_main_process(process_ids);
-    if(is_main) {
+    if (is_main) {
+        fflush(stdout);
+
         prepare_server(connection);
         wait_children_and_exit();
-    }
-    else {
-        prepare_client(connection);
+    } else {
+        fflush(stdout);
+
+        start_client(connection);
     }
     return 0;
 }
@@ -60,14 +64,18 @@ void wait_children_and_exit() {
 
 void create_processes(size_t num_processes, pid_t child_pids[NUM_PROCESSES]) {
 
-    if(num_processes <= 0) {
+    if (num_processes <= 0) {
+        fprintf(stderr, "Number of child processes may not be smaller than 1");
         return;
     }
 
     fprintf(stdout, "Creating processes \n");
-    for(size_t p_num = 0; p_num < num_processes; ++p_num) {
+    for (size_t p_num = 0; p_num < num_processes; p_num++) {
+
         pid_t process_id = fork();
-        if (process_id < 0) {
+        child_pids[p_num] = process_id;
+
+        if (process_id == -1) {
             fprintf(stderr, "Process creation failed. Exiting");
             exit(EXIT_FAILURE);
         }
@@ -75,9 +83,7 @@ void create_processes(size_t num_processes, pid_t child_pids[NUM_PROCESSES]) {
             break;
         }
         else {
-            child_pids[p_num] = process_id;
-            fprintf(stdout, "Created process with pid %d \n", process_id);
-            continue;
+            fprintf(stdout, "Created process with process_id %d \n", process_id);
         }
     }
 }
