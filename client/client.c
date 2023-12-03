@@ -1,12 +1,16 @@
 #include <ctype.h>
 #include "client.h"
 
+int main() {
+    fprintf(stdout, "Welcome to the client app \n");
+
+
+
+    exit(EXIT_SUCCESS);
+}
 
 
 void start_client(connection_t connection) {
-
-    //const int *client_to_server = (const int *) connection.client_to_server;
-    //const int *server_to_client = (const int *) connection.server_to_client;
 
     close(connection.client_to_server[READ_END]);
     close(connection.server_to_client[WRITE_END]);
@@ -22,8 +26,6 @@ void start_client(connection_t connection) {
         }
     }
 
-    //char *buffer = "Test";
-    //send_message_to_server(client_to_server, buffer);
 }
 
 

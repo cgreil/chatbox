@@ -3,10 +3,25 @@ project(communication C)
 
 set(CMAKE_C_STANDARD 11)
 
-add_executable(communication
+if(FALSE) # fake a block comment
+add_executable(dev
         main.c
         client/client.h
         util/connection.h
         server/server.h
         server/server.c
         client/client.c)
+endif()
+
+
+add_executable(client
+                client/client.h
+                client/client.c
+                util/connection.h
+        util/connection.c)
+
+add_executable(server
+                server/server.h
+                server/server.c
+                util/connection.h
+        util/connection.c)

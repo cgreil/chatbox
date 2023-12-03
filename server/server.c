@@ -2,6 +2,7 @@
 #include <unistd.h>
 #include <stdbool.h>
 #include <string.h>
+#include <stdlib.h>
 #include "server.h"
 #include "../util/connection.h"
 
@@ -10,6 +11,11 @@
 
 #define READ_END 0
 #define WRITE_END 1
+
+int main() {
+    fprintf(stdout, "Welcome to the server app \n");
+    exit(EXIT_SUCCESS);
+}
 
 void prepare_server(connection_t connection) {
     //const int *client_to_server = connection.client_to_server;

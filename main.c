@@ -4,6 +4,7 @@
 #include <stdbool.h>
 
 #include <sys/wait.h>
+#include <sys/stat.h>
 
 #include "util/connection.h"
 #include "server/server.h"
@@ -80,6 +81,24 @@ void create_processes(size_t num_processes, pid_t child_pids[NUM_PROCESSES]) {
             exit(EXIT_FAILURE);
         }
         else if (process_id == 0) {
+            // create named pipe as file
+            char *console_pipe = "/tmp/myfifo";
+            // start fifo with read and write permission (no execute)
+            if (mkfifo(console_pipe, 0777) == -1) {
+                fprintf(stderr, "Creation of external console failed \n");
+                //_exit(EXIT_FAILURE);
+            }
+
+            // open new terminal window
+            //execl("/usr/bin/gnome-terminal", "gnome-terminal", "-q", "-e", console_pipe,  (char *) NULL);
+            execl("/usr/bin/gnome-terminal", "gnome-terminal", "-q", "--window", (char *) NULL);
+
+            // detach child from parent console
+            //freopen(console_pipe, "rw", stdout);
+            //freopen(console_pipe, "rw", stdin);
+            //freopen(console_pipe, "rw", stderr);
+
+            fprintf(stdout, "Test");
             break;
         }
         else {
