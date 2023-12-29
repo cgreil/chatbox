@@ -1,51 +1,37 @@
 #include <stdio.h>
-#include <unistd.h>
-#include <stdbool.h>
-#include <string.h>
-#include <stdlib.h>
 #include "server.h"
 #include "../util/connection.h"
 
 
 #define BUFFER_SIZE 512
 
-#define READ_END 0
-#define WRITE_END 1
+#define OUTPUT_CHANNEL stdout
+#define INPUT_CHANNEL stdin
+#define ERROR_CHANNEL stderr
+
 
 int main() {
-    fprintf(stdout, "Welcome to the server app \n");
-    // open pool of connections
-    connection_t **connections = create_connection_pool();
-    open_all_connections(connections);
+    fprintf(OUTPUT_CHANNEL, "Starting up the server... \n");
+    connection_t **connections;
+    //int pool_ret = create_connection_pool(connections);
 
+    connection_t connection;
+    run_server(connection);
+    //open_all_connections(connections);
+    //clean_connections();
 
-
-
-    clear_connection_pool();
-
-
+    return -1;
 }
 
-void prepare_server(connection_t connection) {
+void run_server(connection_t connection) {
+    fprintf(OUTPUT_CHANNEL, "Running server \n");
 
-    //receive_message_from_client(connection.client_to_server);
+    fprintf(OUTPUT_CHANNEL, "Shutting down server \n");
+    fflush(OUTPUT_CHANNEL);
 }
 
-void open_all_connections(connection_t **connections) {
-
-    fprintf(stdout, "Opening all ports ... \n");
-    for (int i = 0; i < MAX_CONNECTIONS; ++i) {
-        //TODO: open server to client as writeonly and client to server as readonly
-        fopen(*connections[i]->server_to_client, "rw");
-        fopen(*connections[i]->client_to_server, "rw");
-        fprintf(stdout, "Opened port %d \n", i);
-    }
-    fprintf(stdout, "Opened ports ... \n");
-
-}
-
-
-void receive_message_from_client(const int *client_to_server) {
+/*
+void read_client_message(connection_t connection) {
     char buffer[BUFFER_SIZE];
     char next_char;
     unsigned int char_count = 0;
@@ -75,3 +61,4 @@ void receive_message_from_client(const int *client_to_server) {
 
     printf("SERVER: Received message: %s \n", buffer);
 }
+ */

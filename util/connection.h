@@ -13,9 +13,9 @@ typedef struct connection {
 } connection_t;
 
 
-connection_t **create_connection_pool();
+int create_connection_pool(connection_t **connection);
 
-int clear_connection_pool();
+int clean_connections();
 
 
 

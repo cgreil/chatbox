@@ -3,11 +3,11 @@
 
 #include "../util/connection.h"
 
-void receive_message_from_client(const int *client_to_server);
+void read_client_message(connection_t connection);
 
 void listen_to_messages();
 
-void prepare_server(connection_t connection);
+void run_server(connection_t connection);
 
 void open_all_connections(connection_t **connections);
 
