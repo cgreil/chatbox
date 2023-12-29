@@ -9,7 +9,7 @@ void listen_to_messages();
 
 void prepare_server(connection_t connection);
 
-
+void open_all_connections(connection_t **connections);
 
 
 

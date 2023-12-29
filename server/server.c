@@ -14,23 +14,36 @@
 
 int main() {
     fprintf(stdout, "Welcome to the server app \n");
-    exit(EXIT_SUCCESS);
+    // open pool of connections
+    connection_t **connections = create_connection_pool();
+    open_all_connections(connections);
+
+
+
+
+    clear_connection_pool();
+
+
 }
 
 void prepare_server(connection_t connection) {
-    //const int *client_to_server = connection.client_to_server;
-    //const int *server_to_client = (const int *) connection.server_to_client;
 
-    close(connection.client_to_server[WRITE_END]);
-    close(connection.server_to_client[READ_END]);
-
-    receive_message_from_client(connection.client_to_server);
+    //receive_message_from_client(connection.client_to_server);
 }
 
-void listen_to_messages() {
-    // TODO
+void open_all_connections(connection_t **connections) {
+
+    fprintf(stdout, "Opening all ports ... \n");
+    for (int i = 0; i < MAX_CONNECTIONS; ++i) {
+        //TODO: open server to client as writeonly and client to server as readonly
+        fopen(*connections[i]->server_to_client, "rw");
+        fopen(*connections[i]->client_to_server, "rw");
+        fprintf(stdout, "Opened port %d \n", i);
+    }
+    fprintf(stdout, "Opened ports ... \n");
 
 }
+
 
 void receive_message_from_client(const int *client_to_server) {
     char buffer[BUFFER_SIZE];

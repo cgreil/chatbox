@@ -18,10 +18,10 @@ add_executable(client
                 client/client.h
                 client/client.c
                 util/connection.h
-        util/connection.c)
+)
 
 add_executable(server
                 server/server.h
                 server/server.c
                 util/connection.h
-        util/connection.c)
+)

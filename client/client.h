@@ -14,32 +14,31 @@
 #define WRITE_END 1
 
 #define OUTPUT_CHANNEL stdout
+#define INPUT_CHANNEL stdin
 #define ERROR_CHANNEL stderr
 
 #define MAX_USERNAME_SIZE 64
 
-enum ACTION {
+typedef enum {
     SEND_MESSAGE = 0,
     CHOOSE_USERNAME = 1,
     QUIT = 2,
-    INVALID = 3
-};
+    INVALID = 3,
+    NONE = 4
+}ACTION_T;
 
+void run_client();
 
-
-void prepare_client(connection_t connection);
-
-void send_message_to_server(const int *client_to_server, char *message);
+void send_message_to_server(connection_t connection, char *messages);
 
 void show_menu();
 
-enum ACTION get_user_action();
+ACTION_T get_user_action();
 
-void handle_action(enum ACTION action, const int *client_to_server);
+void handle_action(ACTION_T action, connection_t connection);
 
 void clear_screen();
 
-void start_client(connection_t connection);
 
 
 

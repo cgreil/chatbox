@@ -4,33 +4,26 @@
 int main() {
     fprintf(stdout, "Welcome to the client app \n");
 
-
+    run_client();
 
     exit(EXIT_SUCCESS);
 }
 
 
-void start_client(connection_t connection) {
+void run_client() {
 
-    close(connection.client_to_server[READ_END]);
-    close(connection.server_to_client[WRITE_END]);
+    connection_t connection;
 
-    while(true) {
+    ACTION_T next_action = NONE;
+    while(next_action != QUIT) {
         show_menu();
-        enum ACTION next_action = get_user_action();
-        if (next_action == QUIT) {
-            break;
-        }
-        else {
-            handle_action(next_action,  connection.client_to_server);
-        }
+        next_action = get_user_action();
+        handle_action(next_action,  connection);
     }
 
 }
 
-
 void show_menu() {
-    fprintf(OUTPUT_CHANNEL, "Menu:");
     fprintf(OUTPUT_CHANNEL, "Choose your action: \n");
     fprintf(OUTPUT_CHANNEL, "[S]end message \n");
     fprintf(OUTPUT_CHANNEL, "[C]hoose username \n");
@@ -38,9 +31,13 @@ void show_menu() {
     fflush(OUTPUT_CHANNEL);
 }
 
-enum ACTION get_user_action() {
-    char input;
-    scanf("%c \n", &input);
+ACTION_T get_user_action() {
+
+    char input = ' ';
+    while (input == ' ' || input == '\n') {
+        input = (char) fgetc(INPUT_CHANNEL);
+    }
+
     switch (tolower(input)) {
         case 's':
             return SEND_MESSAGE;
@@ -53,12 +50,13 @@ enum ACTION get_user_action() {
     }
 }
 
-void handle_action(enum ACTION action, const int *client_to_server) {
+void handle_action(ACTION_T action, connection_t connection) {
 
     clear_screen();
 
     switch (action) {
         case SEND_MESSAGE: {
+            /*
             fprintf(OUTPUT_CHANNEL, "Enter your message: \n");
             char buffer[BUFFER_SIZE];
             size_t message_size = BUFFER_SIZE;
@@ -67,10 +65,13 @@ void handle_action(enum ACTION action, const int *client_to_server) {
                 fprintf(ERROR_CHANNEL, "Error encountered reading user input \n");
                 break;
             }
-            send_message_to_server(client_to_server, buffer);
+            send_message_to_server(connection, buffer);
+             */
+            fprintf(stdout, "Handling action SEND_MESSAGE \n");
             break;
         }
         case CHOOSE_USERNAME: {
+            /*
             fprintf(OUTPUT_CHANNEL, "Enter your username: \n");
             char buffer[MAX_USERNAME_SIZE];
             size_t username_size = MAX_USERNAME_SIZE;
@@ -80,33 +81,37 @@ void handle_action(enum ACTION action, const int *client_to_server) {
                 break;
             }
             //TODO: Change uname
+             */
+            fprintf(stdout, "Handling action CHANGE_USERNAME \n");
             break;
         }
         case QUIT:
-            fprintf(stdout, "The service will now quit");
-            fflush(stdout);
-            _exit(EXIT_SUCCESS);
+            fprintf(OUTPUT_CHANNEL, "The service will now shut down \n");
+            fflush(OUTPUT_CHANNEL);
             break;
         case INVALID:
-            fprintf(OUTPUT_CHANNEL, "Invalid action. Please specify a different action");
+            fprintf(OUTPUT_CHANNEL, "Invalid action. Please specify a different action \n");
+            break;
+        case NONE:
             break;
     }
 }
 
-void send_message_to_server(const int *client_to_server, char *message) {
+void send_message_to_server(connection_t connection, char *message) {
     unsigned long terminated_str_len = strlen(message);
     fprintf(stdout, "CLIENT: sending message: %s\n", message);
     ssize_t n = 0;
     size_t len = strlen(message) + 1;
     size_t bytes_sent = 0;
-    while(bytes_sent < len) {
+    /*while(bytes_sent < len) {
         n = write(client_to_server[1], message + bytes_sent, len - bytes_sent);
         if (n < 0) {
             fprintf(ERROR_CHANNEL, "CLIENT: Error writing to pipe.");
             return;
         }
         bytes_sent += n;
-    }
+    }*/
+
 }
 
 void clear_screen() {
