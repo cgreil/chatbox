@@ -69,7 +69,7 @@ int main() {
                                 (socklen_t *)&addr_len);
 
         if (client_fd == -1) {
-            fprintf(OUTPUT_CHANNEL, "Accepting client failed \n");
+            //fprintf(OUTPUT_CHANNEL, "Accepting client failed \n");
         }
         else {
             fprintf(OUTPUT_CHANNEL, "Successfully accepted client \n");

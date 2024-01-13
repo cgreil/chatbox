@@ -4,18 +4,19 @@
 
 #include "client.h"
 
-int main() {
-    fprintf(stdout, "Welcome to the client app \n");
+#define MAX_MSG_SIZE 1024
 
+int main() {
+
+    fprintf(stdout, "Welcome to the client app \n");
+    connection_t connection;
     run_client();
 
     exit(EXIT_SUCCESS);
 }
 
 
-void run_client() {
-
-    connection_t connection;
+void run_client(connection_t *connection) {
 
     ACTION_T next_action = NONE;
     while(next_action != QUIT) {
@@ -56,24 +57,25 @@ ACTION_T get_user_action() {
     }
 }
 
-void handle_action(ACTION_T action, connection_t connection) {
+void handle_action(ACTION_T action, connection_t *connection) {
 
     clear_screen();
 
     switch (action) {
         case SEND_MESSAGE: {
-            /*
-            fprintf(OUTPUT_CHANNEL, "Enter your message: \n");
-            char buffer[BUFFER_SIZE];
-            size_t message_size = BUFFER_SIZE;
-            ssize_t num_read = getline((char **) &buffer, &message_size, stdin);
-            if (num_read == -1) {
-                fprintf(ERROR_CHANNEL, "Error encountered reading user input \n");
+            fprintf(OUTPUT_CHANNEL, "Handling action SEND_MESSAGE \n");
+
+            char msg_buffer[MAX_MSG_SIZE];
+            size_t max = BUFFER_SIZE;
+            // set input to end of stdin so that previously written newline is not read
+            flush_input();
+            fprintf(OUTPUT_CHANNEL, "Input your message: \n");
+            char *msg = fgets(msg_buffer, MAX_MSG_SIZE, stdin);
+            if (msg == NULL) {
+                fprintf(ERROR_CHANNEL, "Could not read input \n");
                 break;
             }
-            send_message_to_server(connection, buffer);
-             */
-            fprintf(stdout, "Handling action SEND_MESSAGE \n");
+            fprintf(OUTPUT_CHANNEL, "Message: %s", msg_buffer);
             break;
         }
         case CHOOSE_USERNAME: {
@@ -88,7 +90,7 @@ void handle_action(ACTION_T action, connection_t connection) {
             }
             //TODO: Change uname
              */
-            fprintf(stdout, "Handling action CHANGE_USERNAME \n");
+            fprintf(OUTPUT_CHANNEL, "Handling action CHANGE_USERNAME \n");
             break;
         }
 
@@ -107,8 +109,8 @@ void handle_action(ACTION_T action, connection_t connection) {
             client_address.sun_family = AF_UNIX;
             strncpy(client_address.sun_path, SOCKET_PATH, sizeof (client_address.sun_path) - 1);
 
-            int con = connect(socket_fd, (struct sockaddr *) &client_address, sizeof(client_address) -1);
-            if (con == -1) {
+            int connection_ret = connect(socket_fd, (struct sockaddr *) &client_address, sizeof(client_address) -1);
+            if (connection_ret == -1) {
                 fprintf(ERROR_CHANNEL, "Connection to server failed ... \n");
                 break;
             }
@@ -127,6 +129,11 @@ void handle_action(ACTION_T action, connection_t connection) {
         case NONE:
             break;
     }
+}
+
+void flush_input() {
+    int c;
+    while ( (c = getchar()) != '\n' && c != EOF ) { }
 }
 
 void send_message_to_server(connection_t connection, char *message) {

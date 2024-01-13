@@ -36,10 +36,11 @@ void show_menu();
 
 ACTION_T get_user_action();
 
-void handle_action(ACTION_T action, connection_t connection);
+void handle_action(ACTION_T action, connection_t *connection);
 
 void clear_screen();
 
+void flush_input();
 
 
 
