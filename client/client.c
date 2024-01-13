@@ -1,4 +1,7 @@
 #include <ctype.h>
+#include <sys/socket.h>
+#include <sys/un.h>
+
 #include "client.h"
 
 int main() {
@@ -27,6 +30,7 @@ void show_menu() {
     fprintf(OUTPUT_CHANNEL, "Choose your action: \n");
     fprintf(OUTPUT_CHANNEL, "[S]end message \n");
     fprintf(OUTPUT_CHANNEL, "[C]hoose username \n");
+    fprintf(OUTPUT_CHANNEL, "[O]pen connection to server \n");
     fprintf(OUTPUT_CHANNEL, "[Q]uit program \n");
     fflush(OUTPUT_CHANNEL);
 }
@@ -43,6 +47,8 @@ ACTION_T get_user_action() {
             return SEND_MESSAGE;
         case 'c':
             return CHOOSE_USERNAME;
+        case 'o':
+            return OPEN_CONNECTION;
         case 'q':
             return QUIT;
         default:
@@ -84,6 +90,32 @@ void handle_action(ACTION_T action, connection_t connection) {
              */
             fprintf(stdout, "Handling action CHANGE_USERNAME \n");
             break;
+        }
+
+        case OPEN_CONNECTION: {
+
+            //create socket file descriptor
+            int socket_fd = socket(AF_LOCAL, SOCK_STREAM | SOCK_NONBLOCK, 0);
+            if (socket_fd == -1) {
+                fprintf(ERROR_CHANNEL, "Socket creation failed \n");
+                break;
+            }
+
+            //create address of socket
+            struct sockaddr_un client_address;
+            memset(&client_address, 0, sizeof(client_address));
+            client_address.sun_family = AF_UNIX;
+            strncpy(client_address.sun_path, SOCKET_PATH, sizeof (client_address.sun_path) - 1);
+
+            int con = connect(socket_fd, (struct sockaddr *) &client_address, sizeof(client_address) -1);
+            if (con == -1) {
+                fprintf(ERROR_CHANNEL, "Connection to server failed ... \n");
+                break;
+            }
+
+            fprintf(OUTPUT_CHANNEL, "Successfully connected to server \n");
+            break;
+
         }
         case QUIT:
             fprintf(OUTPUT_CHANNEL, "The service will now shut down \n");

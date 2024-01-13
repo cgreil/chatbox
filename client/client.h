@@ -23,8 +23,9 @@ typedef enum {
     SEND_MESSAGE = 0,
     CHOOSE_USERNAME = 1,
     QUIT = 2,
-    INVALID = 3,
-    NONE = 4
+    OPEN_CONNECTION = 3,
+    INVALID = 4,
+    NONE = 5
 }ACTION_T;
 
 void run_client();

@@ -3,6 +3,9 @@
 
 #define MAX_CONNECTIONS 9
 
+#define SOCKET_PATH "./socket"
+
+
 #define STC_CONNECTION_PREFIX "/tmp/STC_"
 #define CTS_CONNECTION_PREFIX "/tmp/CTS_"
 

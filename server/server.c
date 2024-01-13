@@ -11,7 +11,6 @@
 #include "server.h"
 #include "../util/connection.h"
 
-#define SOCKET_PATH "./socket"
 #define MAX_PENDING 1
 
 
@@ -27,11 +26,10 @@
 int main() {
     fprintf(OUTPUT_CHANNEL, "Starting up the server... \n");
 
-
     int socket_fd = socket(AF_LOCAL, SOCK_STREAM | SOCK_NONBLOCK, 0);
     if (socket_fd == -1) {
         fprintf(ERROR_CHANNEL, "Socket creation failed. \n");
-        return EXIT_FAILURE;
+        _exit(EXIT_FAILURE);
     }
 
     // create socket address for inter-process communication
@@ -58,7 +56,7 @@ int main() {
     //start listening
     while(1) {
 
-        sleep(1);
+        sleep(5);
         fprintf(OUTPUT_CHANNEL, "Waiting for client message... \n");
 
         struct sockaddr_in client_address;
@@ -73,6 +71,9 @@ int main() {
         if (client_fd == -1) {
             fprintf(OUTPUT_CHANNEL, "Accepting client failed \n");
         }
+        else {
+            fprintf(OUTPUT_CHANNEL, "Successfully accepted client \n");
+        }
 
         //read message
         char message_buffer[BUFFER_SIZE + 1];
@@ -81,7 +82,6 @@ int main() {
         ssize_t count = read(client_fd, message_buffer, sizeof(message_buffer));
         if (count > 0) {
             fprintf(OUTPUT_CHANNEL, "Received message: %s \n", message_buffer);
-            //write(client_fd, message_buffer, sizeof(message_buffer) /* echo as confirmation */
         }
         else {
             fprintf(OUTPUT_CHANNEL, "No message received \n");
