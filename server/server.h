@@ -11,6 +11,7 @@ void run_server(connection_t connection);
 
 void open_all_connections(connection_t **connections);
 
+int setup_server_socket();
 
 
 

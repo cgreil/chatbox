@@ -28,7 +28,7 @@ typedef enum {
     NONE = 5
 }ACTION_T;
 
-void run_client();
+void run_client(connection_t *connection);
 
 void send_message_to_server(connection_t connection, char *messages);
 

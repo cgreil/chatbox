@@ -10,11 +10,10 @@ int main() {
 
     fprintf(stdout, "Welcome to the client app \n");
     connection_t connection;
-    run_client();
+    run_client(&connection);
 
     exit(EXIT_SUCCESS);
 }
-
 
 void run_client(connection_t *connection) {
 
@@ -59,37 +58,37 @@ ACTION_T get_user_action() {
 
 void handle_action(ACTION_T action, connection_t *connection) {
 
+    if (connection == NULL) {
+        fprintf(ERROR_CHANNEL, "Invalid connection. Exiting ... ");
+        _exit(EXIT_FAILURE);
+    }
+
     clear_screen();
 
     switch (action) {
         case SEND_MESSAGE: {
+
             fprintf(OUTPUT_CHANNEL, "Handling action SEND_MESSAGE \n");
 
             char msg_buffer[MAX_MSG_SIZE];
-            size_t max = BUFFER_SIZE;
             // set input to end of stdin so that previously written newline is not read
             flush_input();
-            fprintf(OUTPUT_CHANNEL, "Input your message: \n");
+            fprintf(OUTPUT_CHANNEL, "Please enter your message: \n");
             char *msg = fgets(msg_buffer, MAX_MSG_SIZE, stdin);
             if (msg == NULL) {
                 fprintf(ERROR_CHANNEL, "Could not read input \n");
                 break;
             }
-            fprintf(OUTPUT_CHANNEL, "Message: %s", msg_buffer);
+
+            //fprintf(OUTPUT_CHANNEL, "Message: %s", msg_buffer);
+            ssize_t num_written = write(connection->connection_fd, msg_buffer, MAX_MSG_SIZE);
+            if (num_written == -1) {
+                fprintf(ERROR_CHANNEL, "Sending the Message failed. \n");
+                break;
+            }
             break;
         }
         case CHOOSE_USERNAME: {
-            /*
-            fprintf(OUTPUT_CHANNEL, "Enter your username: \n");
-            char buffer[MAX_USERNAME_SIZE];
-            size_t username_size = MAX_USERNAME_SIZE;
-            ssize_t num_read = getline((char **) &buffer, &username_size, stdin);
-            if (num_read == -1) {
-                fprintf(ERROR_CHANNEL, "Error encountered reading username");
-                break;
-            }
-            //TODO: Change uname
-             */
             fprintf(OUTPUT_CHANNEL, "Handling action CHANGE_USERNAME \n");
             break;
         }
@@ -115,9 +114,9 @@ void handle_action(ACTION_T action, connection_t *connection) {
                 break;
             }
 
+            connection->connection_fd = socket_fd;
             fprintf(OUTPUT_CHANNEL, "Successfully connected to server \n");
             break;
-
         }
         case QUIT:
             fprintf(OUTPUT_CHANNEL, "The service will now shut down \n");
@@ -129,11 +128,6 @@ void handle_action(ACTION_T action, connection_t *connection) {
         case NONE:
             break;
     }
-}
-
-void flush_input() {
-    int c;
-    while ( (c = getchar()) != '\n' && c != EOF ) { }
 }
 
 void send_message_to_server(connection_t connection, char *message) {
@@ -153,6 +147,12 @@ void send_message_to_server(connection_t connection, char *message) {
 
 }
 
+void flush_input() {
+    int c;
+    while ((c = getchar()) != '\n' && c != EOF ) { }
+}
+
 void clear_screen() {
+    // Unholy magic
     printf("\x1b[H\x1b[J");
 }
