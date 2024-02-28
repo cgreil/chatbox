@@ -16,7 +16,6 @@
 #define OUTPUT_CHANNEL stdout
 #define INPUT_CHANNEL stdin
 #define ERROR_CHANNEL stderr
-
 #define MAX_USERNAME_SIZE 64
 
 typedef enum {
@@ -28,19 +27,24 @@ typedef enum {
     NONE = 5
 }ACTION_T;
 
-void run_client(connection_t *connection);
-
-void send_message_to_server(connection_t connection, char *messages);
+void loop_menu(connection_t *connection);
 
 void show_menu();
+
+void send_msg_to_server(connection_t *connection);
 
 ACTION_T get_user_action();
 
 void handle_action(ACTION_T action, connection_t *connection);
 
+int get_user_msg(char *msg_buffer);
+
+int open_server_connection(connection_t *connection);
+
 void clear_screen();
 
 void flush_input();
+
 
 
 

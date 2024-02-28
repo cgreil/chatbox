@@ -7,23 +7,19 @@
 #define MAX_MSG_SIZE 1024
 
 int main() {
-
     fprintf(stdout, "Welcome to the client app \n");
     connection_t connection;
-    run_client(&connection);
-
+    loop_menu(&connection);
     exit(EXIT_SUCCESS);
 }
 
-void run_client(connection_t *connection) {
-
+void loop_menu(connection_t *connection) {
     ACTION_T next_action = NONE;
     while(next_action != QUIT) {
         show_menu();
         next_action = get_user_action();
         handle_action(next_action,  connection);
     }
-
 }
 
 void show_menu() {
@@ -41,7 +37,6 @@ ACTION_T get_user_action() {
     while (input == ' ' || input == '\n') {
         input = (char) fgetc(INPUT_CHANNEL);
     }
-
     switch (tolower(input)) {
         case 's':
             return SEND_MESSAGE;
@@ -62,62 +57,18 @@ void handle_action(ACTION_T action, connection_t *connection) {
         fprintf(ERROR_CHANNEL, "Invalid connection. Exiting ... ");
         _exit(EXIT_FAILURE);
     }
-
     clear_screen();
-
     switch (action) {
-        case SEND_MESSAGE: {
-
-            fprintf(OUTPUT_CHANNEL, "Handling action SEND_MESSAGE \n");
-
-            char msg_buffer[MAX_MSG_SIZE];
-            // set input to end of stdin so that previously written newline is not read
-            flush_input();
-            fprintf(OUTPUT_CHANNEL, "Please enter your message: \n");
-            char *msg = fgets(msg_buffer, MAX_MSG_SIZE, stdin);
-            if (msg == NULL) {
-                fprintf(ERROR_CHANNEL, "Could not read input \n");
-                break;
-            }
-
-            //fprintf(OUTPUT_CHANNEL, "Message: %s", msg_buffer);
-            ssize_t num_written = write(connection->connection_fd, msg_buffer, MAX_MSG_SIZE);
-            if (num_written == -1) {
-                fprintf(ERROR_CHANNEL, "Sending the Message failed. \n");
-                break;
-            }
+        case SEND_MESSAGE:
+            send_msg_to_server(connection);
             break;
-        }
         case CHOOSE_USERNAME: {
             fprintf(OUTPUT_CHANNEL, "Handling action CHANGE_USERNAME \n");
             break;
         }
-
-        case OPEN_CONNECTION: {
-
-            //create socket file descriptor
-            int socket_fd = socket(AF_LOCAL, SOCK_STREAM | SOCK_NONBLOCK, 0);
-            if (socket_fd == -1) {
-                fprintf(ERROR_CHANNEL, "Socket creation failed \n");
-                break;
-            }
-
-            //create address of socket
-            struct sockaddr_un client_address;
-            memset(&client_address, 0, sizeof(client_address));
-            client_address.sun_family = AF_UNIX;
-            strncpy(client_address.sun_path, SOCKET_PATH, sizeof (client_address.sun_path) - 1);
-
-            int connection_ret = connect(socket_fd, (struct sockaddr *) &client_address, sizeof(client_address) -1);
-            if (connection_ret == -1) {
-                fprintf(ERROR_CHANNEL, "Connection to server failed ... \n");
-                break;
-            }
-
-            connection->connection_fd = socket_fd;
-            fprintf(OUTPUT_CHANNEL, "Successfully connected to server \n");
+        case OPEN_CONNECTION:
+            open_server_connection(connection);
             break;
-        }
         case QUIT:
             fprintf(OUTPUT_CHANNEL, "The service will now shut down \n");
             fflush(OUTPUT_CHANNEL);
@@ -130,21 +81,57 @@ void handle_action(ACTION_T action, connection_t *connection) {
     }
 }
 
-void send_message_to_server(connection_t connection, char *message) {
-    unsigned long terminated_str_len = strlen(message);
-    fprintf(stdout, "CLIENT: sending message: %s\n", message);
-    ssize_t n = 0;
-    size_t len = strlen(message) + 1;
-    size_t bytes_sent = 0;
-    /*while(bytes_sent < len) {
-        n = write(client_to_server[1], message + bytes_sent, len - bytes_sent);
-        if (n < 0) {
-            fprintf(ERROR_CHANNEL, "CLIENT: Error writing to pipe.");
-            return;
-        }
-        bytes_sent += n;
-    }*/
+void send_msg_to_server(connection_t *connection) {
+    fprintf(OUTPUT_CHANNEL, "Handling action SEND_MESSAGE \n");
+    char *msg_buffer = calloc(MAX_MSG_SIZE, sizeof(char));
+    if (get_user_msg(msg_buffer) == -1) {
+        fprintf(ERROR_CHANNEL, "Could not retrieve user message");
+        return;
+    }
+    //fprintf(OUTPUT_CHANNEL, "Message: %s", msg_buffer);
+    ssize_t num_written = write(connection->connection_fd, msg_buffer, MAX_MSG_SIZE);
+    if (num_written == -1) {
+        fprintf(ERROR_CHANNEL, "Sending the Message failed. \n");
+        free(msg_buffer);
+        return;
+    }
+    free(msg_buffer);
+}
 
+int get_user_msg(char *msg_buffer) {
+    // set input to end of stdin so that previously written newline is not read
+    flush_input();
+    fprintf(OUTPUT_CHANNEL, "Please enter your message: \n");
+    char *msg = fgets(msg_buffer, MAX_MSG_SIZE, stdin);
+    if (msg == NULL) {
+        fprintf(ERROR_CHANNEL, "Could not read input \n");
+        return -1;
+    }
+    return 0;
+}
+
+int open_server_connection(connection_t *connection) {
+    //create socket file descriptor
+    int socket_fd = socket(AF_LOCAL, SOCK_STREAM | SOCK_NONBLOCK, 0);
+    if (socket_fd == -1) {
+        fprintf(ERROR_CHANNEL, "Socket creation failed \n");
+        return -1;
+    }
+    //create address of socket
+    struct sockaddr_un client_address;
+    memset(&client_address, 0, sizeof(client_address));
+    client_address.sun_family = AF_UNIX;
+    strncpy(client_address.sun_path, SOCKET_PATH, sizeof (client_address.sun_path) - 1);
+
+    int connection_ret = connect(socket_fd, (struct sockaddr *) &client_address, sizeof(client_address) - 1);
+    if (connection_ret == -1) {
+        fprintf(ERROR_CHANNEL, "Connection to server failed ... \n");
+        return -1;
+    }
+    connection->connection_fd = socket_fd;
+    fprintf(OUTPUT_CHANNEL, "Successfully queued for server connection \n");
+
+    return 0;
 }
 
 void flush_input() {
