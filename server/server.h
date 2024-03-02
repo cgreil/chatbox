@@ -22,6 +22,11 @@ void cleanup_server(int *client_fd, int num_connected, int socket_fd);
 
 int get_available_sockets(fd_set *sockets, int *monitored_descriptors, size_t num_monitored);
 
+int handle_client_connections(int socket_fd);
+
+int read_msg_from_client(int fd_to_read, int client_id);
+
+
 
 
 #endif

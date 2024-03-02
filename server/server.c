@@ -22,48 +22,31 @@ int main() {
 
         sleep(5);
         // accept client connections on the socket if more clients are still possible
+
         if (num_connected < MAX_CLIENTS) {
-            struct sockaddr_in client_address;
-            int addr_len = sizeof(client_address);
-            int new_client_fd = accept(socket_fd, (struct sockaddr *) &client_address,
-                                       (socklen_t *) &addr_len);
-            if (new_client_fd == -1) {
-                // case where no new client is connecting
-                fprintf(ERROR_CHANNEL, "No client connected\n");
-            } else {
-                fprintf(OUTPUT_CHANNEL, "Successfully accepted new client \n");
-                client_connections[num_connected] = new_client_fd;
-                num_connected++;
-            }
+            int new_client_fd = handle_client_connections(socket_fd);
+            client_connections[num_connected] = new_client_fd;
+            num_connected++;
         } else {
             fprintf(OUTPUT_CHANNEL, "Maximal number of clients connected: %zu/%d \n", num_connected, MAX_CLIENTS);
         }
 
         fd_set readset;
-        int num_readset = get_available_sockets(&readset, client_connections, num_connected);
-        if (num_readset == 0) {
+        int num_readable_fds = get_available_sockets(&readset, client_connections, num_connected);
+        if (num_readable_fds == 0) {
             // no messages waiting to be received
             continue;
-        }
-        else {
+        } else {
             fprintf(OUTPUT_CHANNEL, "Receiving client messages \n");
         }
-        for (size_t client_id = 0; client_id < num_connected; ++client_id) {
+        for (int client_id = 0; client_id < num_connected; ++client_id) {
 
             // check whether fd is in readset
             if (!FD_ISSET(client_connections[client_id], &readset)) {
                 continue;
             }
+            int message_handling = read_msg_from_client(client_connections[client_id], client_id + 1);
 
-            size_t charbuf_size = (BUFFER_SIZE + 1) * sizeof(char);
-            char *message_buffer = calloc(charbuf_size, 1);
-            ssize_t num_read_bytes = read(client_connections[client_id], message_buffer, charbuf_size);
-            if (num_read_bytes > 0 && message_buffer != NULL) {
-                fprintf(OUTPUT_CHANNEL, "Received message from client %zu: %s \n", client_id, message_buffer);
-            } else {
-                fprintf(OUTPUT_CHANNEL, "No message received from client %zu \n", client_id);
-            }
-            free(message_buffer);
         }
 
     }
@@ -72,10 +55,21 @@ int main() {
 }
 
 void run_server(connection_t connection) {
-    fprintf(OUTPUT_CHANNEL, "Running server \n");
+    fprintf(OUTPUT_CHANNEL, "Starting up server \n");
+
 
     fprintf(OUTPUT_CHANNEL, "Shutting down server \n");
     fflush(OUTPUT_CHANNEL);
+}
+
+void cleanup_server(int *client_fd, int num_connected, int socket_fd) {
+    //TODO: Cleanup and add with on_exit
+    //close all file descriptors to clients
+    for (int i = 0; i < num_connected; ++i) {
+        close(client_fd[i]);
+    }
+    close(socket_fd);
+    unlink(SOCKET_PATH);
 }
 
 int setup_server_socket() {
@@ -108,16 +102,6 @@ int setup_server_socket() {
     return socket_fd;
 }
 
-void cleanup_server(int *client_fd, int num_connected, int socket_fd) {
-    //TODO: Cleanup and add with on_exit
-    //close all file descriptors to clients
-    for (int i = 0; i < num_connected; ++i) {
-        close(client_fd[i]);
-    }
-    close(socket_fd);
-    unlink(SOCKET_PATH);
-}
-
 int get_available_sockets(fd_set *sockets, int *monitored_descriptors, size_t num_monitored) {
     //Replace accept by select to monitor multiple file descriptors:
     //fd_set sockets;
@@ -139,4 +123,33 @@ int get_available_sockets(fd_set *sockets, int *monitored_descriptors, size_t nu
     int num_read_fds = select(FD_SETSIZE, sockets, (fd_set *) NULL,
                               (fd_set *) NULL, &timeout);
     return num_read_fds;
+}
+
+int handle_client_connections(int socket_fd) {
+    struct sockaddr_in client_address;
+    int addr_len = sizeof(client_address);
+    int new_client_fd = accept(socket_fd, (struct sockaddr *) &client_address,
+                               (socklen_t *) &addr_len);
+    if (new_client_fd == -1) {
+        // case where no new client is connecting
+        fprintf(ERROR_CHANNEL, "No client connected\n");
+    } else {
+        fprintf(OUTPUT_CHANNEL, "Successfully accepted new client \n");
+    }
+
+    return 0;
+}
+
+int read_msg_from_client(int fd_to_read, int client_id) {
+    size_t charbuf_size = (BUFFER_SIZE + 1) * sizeof(char);
+    char *message_buffer = calloc(charbuf_size, 1);
+    ssize_t num_read_bytes = read(fd_to_read, message_buffer, charbuf_size);
+    if (num_read_bytes > 0 && message_buffer != NULL) {
+        fprintf(OUTPUT_CHANNEL, "Received message from client %d: %s \n", client_id, message_buffer);
+    } else {
+        fprintf(OUTPUT_CHANNEL, "No message received from client %d \n", client_id);
+    }
+    free(message_buffer);
+
+    return 0;
 }
