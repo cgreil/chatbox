@@ -18,6 +18,10 @@ add_executable(client
                 client/client.h
                 client/client.c
                 util/connection.h
+        client/user.h
+        client/user.c
+        client/message.h
+        client/message.c
 )
 
 add_executable(server

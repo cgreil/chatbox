@@ -4,9 +4,6 @@
 
 #include "user.h"
 
-#define OUTPUT_CHANNEL stdout
-#define INPUT_CHANNEL stdin
-#define ERROR_CHANNEL stderr
 
 
 int create_user(user_t *user, char *username) {
