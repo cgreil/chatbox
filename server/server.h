@@ -14,7 +14,7 @@
 
 #include "../util/connection.h"
 
-void run_server(connection_t connection);
+int run_server();
 
 int setup_server_socket();
 

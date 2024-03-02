@@ -9,6 +9,13 @@
 int main() {
     fprintf(OUTPUT_CHANNEL, "Starting up the server... \n");
 
+    int server_ret = run_server();
+    return 0;
+}
+
+int run_server() {
+    fprintf(OUTPUT_CHANNEL, "Starting up server \n");
+
     // setting up socket of the server
     int socket_fd = setup_server_socket();
     // store file descriptors of clients
@@ -19,10 +26,9 @@ int main() {
     //on_exit(cleanup_server, client_connections, num_connected, socket_fd);
     //start listening
     while (1) {
+        sleep(1);
 
-        sleep(5);
         // accept client connections on the socket if more clients are still possible
-
         if (num_connected < MAX_CLIENTS) {
             int new_client_fd = handle_client_connections(socket_fd);
             client_connections[num_connected] = new_client_fd;
@@ -46,20 +52,12 @@ int main() {
                 continue;
             }
             int message_handling = read_msg_from_client(client_connections[client_id], client_id + 1);
-
         }
-
     }
-
-    return 0;
-}
-
-void run_server(connection_t connection) {
-    fprintf(OUTPUT_CHANNEL, "Starting up server \n");
-
-
     fprintf(OUTPUT_CHANNEL, "Shutting down server \n");
     fflush(OUTPUT_CHANNEL);
+
+    return 0;
 }
 
 void cleanup_server(int *client_fd, int num_connected, int socket_fd) {
