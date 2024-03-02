@@ -4,18 +4,13 @@
 #include "message.h"
 
 
-int create_message(message_t *message,
-                   MESSAGE_TYPE_T msg_type,
-                   user_t *sending_user,
-                   char **message_content,
-                   size_t content_length,
-                   time_t creation_timestamp) {
+int create_message(message_t *message, MESSAGE_TYPE_T msg_type, user_t *sending_user, char **message_content,
+                   size_t content_length) {
 
     if (message == NULL) {
         fprintf(ERROR_CHANNEL, "Message may not be null \n");
         return -1;
     }
-
     message->message_type = msg_type;
 
     if (sending_user == NULL) {
@@ -27,33 +22,48 @@ int create_message(message_t *message,
         message->sender = sender;
     }
 
+    if (message_content == NULL || *message_content == NULL) {
+        message->message_content = NULL;
+        message->content_length = 0;
+    } else {
+        char *content = malloc(content_length);
+        strncpy(*message_content, content, content_length);
+        message->message_content = content;
+    }
 
+    time_t timestamp;
+    time(&timestamp);
+    message->creation_timestamp = timestamp;
 
-
+    return 0;
 }
 
 int send_message(message_t *message) {
 
     if (message == NULL) {
-        fprintf(OUTPUT_CHANNEL, "Message cannot be null \n");
+        fprintf(ERROR_CHANNEL, "Message cannot be null \n");
         return -1;
     }
-
-    int msg_validity = check_valid_message(message);
-    if (msg_validity == -1) {
+    if (check_message_valid(message) == -1) {
         fprintf(ERROR_CHANNEL, "Invalid message");
         return -1;
     }
 
 
+    return 0;
+}
+
+int destroy_message(message_t *message) {
+
+    free(message->message_content);
+    free(message->sender);
+
+    memset(message, 0, sizeof(message_t));
 
     return 0;
 }
 
-
-
-
-int check_valid_message(message_t *message) {
+int check_message_valid(message_t *message) {
 
     if (message == NULL) {
         fprintf(ERROR_CHANNEL, "Message may not be null \n");
@@ -70,3 +80,4 @@ int check_valid_message(message_t *message) {
     // msg is valid
     return 0;
 }
+

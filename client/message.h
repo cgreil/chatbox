@@ -31,12 +31,8 @@ typedef struct {
     size_t msg_length;
 }serialized_msg_t;
 
-int create_message(message_t *message,
-                   MESSAGE_TYPE_T msg_type,
-                   user_t *sending_user,
-                   char **message_content,
-                   size_t content_length,
-                   time_t creation_timestamp);
+int create_message(message_t *message, MESSAGE_TYPE_T msg_type, user_t *sending_user, char **message_content,
+                   size_t content_length);
 }
 
 int send_message(message_t *message);
@@ -45,9 +41,9 @@ int serialize_message(serialized_msg_t *serial_msg, message_t *message_to_serial
 
 int deserialize_message(serialized_msg_t *serial_msg, message_t *deserialized_message);
 
-int free_message(message_t message);
+int destroy_message(message_t *message);
 
-static int check_valid_message(message_t *message);
+static int check_message_valid(message_t *message);
 
 
 

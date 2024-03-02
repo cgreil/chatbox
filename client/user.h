@@ -16,7 +16,7 @@ int create_user(user_t *user, char *username);
 
 int change_username(user_t *user, char *new_username);
 
-int delete_user(user_t *user);
+int destroy_user(user_t *user);
 
 int copy_user(user_t *src, user_t *dest);
 

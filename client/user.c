@@ -5,7 +5,6 @@
 #include "user.h"
 
 
-
 int create_user(user_t *user, char *username) {
 
     if (user == NULL) {
@@ -31,7 +30,7 @@ int change_username(user_t *user, char *new_username) {
     return 0;
 }
 
-int delete_user(user_t *user) {
+int destroy_user(user_t *user) {
 
     if(user == NULL) {
         fprintf(ERROR_CHANNEL, "User cannot be null \n");
@@ -47,7 +46,22 @@ int delete_user(user_t *user) {
     return 0;
 }
 
+int copy_user(user_t *src, user_t *dest){
 
+    if (src == NULL) {
+        fprintf(ERROR_CHANNEL, "Source may not be null \n");
+        return -1;
+    }
+    if (dest == NULL) {
+        fprintf(ERROR_CHANNEL, "Destination may not be null \n");
+        return -1;
+    }
+
+    strncpy(dest->username, src->username, MAX_USERNAME_SIZE);
+    dest->user_id = src->user_id;
+
+    return 0;
+}
 
 
 
