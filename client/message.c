@@ -49,6 +49,13 @@ int send_message(message_t *message) {
         return -1;
     }
 
+    serialized_msg_t serialized_message;
+    int ser_ret = serialize_message(&serialized_message, message);
+    if (ser_ret == -1){
+        fprintf(ERROR_CHANNEL, "Sending message failed");
+        return -1;
+    }
+
 
     return 0;
 }
@@ -81,3 +88,78 @@ int check_message_valid(message_t *message) {
     return 0;
 }
 
+int serialize_message(serialized_msg_t *serial_msg, message_t *message_to_serialize) {
+
+    if (message_to_serialize == NULL) {
+        fprintf(ERROR_CHANNEL, "Message cannot be null! \n");
+        return -1;
+    }
+    if (serial_msg == NULL) {
+        fprintf(ERROR_CHANNEL, "Serialized Message has to be initialized! \n");
+        return -1;
+    }
+
+    size_t msg_size = 0;
+    msg_size += message_to_serialize->content_length;
+    msg_size += MAX_USERNAME_SIZE;
+    msg_size += sizeof(MESSAGE_TYPE_T);
+
+    // TODO: put into external function
+    size_t time_size = 30;
+    char timestring[time_size];
+    struct tm *loc_time = localtime(&message_to_serialize->creation_timestamp);
+    strftime(timestring, time_size, "%Y-%m-%d: %H:%M", loc_time);
+
+    msg_size += sizeof(time_size);
+
+    char *serial_string = (char *) malloc(msg_size);
+
+    // TODO: put into external function
+    char *type_string;
+    switch (message_to_serialize->message_type) {
+        case PUBLIC_MESSAGE:
+            type_string = "PUB";
+            break;
+        case PRIVATE_MESSAGE:
+            type_string = "PRIV";
+            break;
+        case SERVER_MESSAGE:
+            type_string = "SERV";
+            break;
+        case NONE:
+            fprintf(ERROR_CHANNEL, "Cannot send message of type NONE \n");
+            return -1;
+    }
+
+    int serialized_size = sprintf(serial_string, "%s: %s: [%s]: %s", timestring,
+            message_to_serialize->sender->username,
+            type_string,
+            message_to_serialize->message_content);
+
+    if (serialized_size <= 0) {
+        fprintf(ERROR_CHANNEL, "Serializing the message failed");
+        free(serial_string);
+        return -1;
+    }
+    serial_msg->msg_string = serial_string;
+    serial_msg->msg_length = serialized_size;
+
+    return 0;
+}
+
+int deserialize_message(serialized_msg_t *serial_msg, message_t *deserialized_message) {
+
+    if (serial_msg == NULL) {
+        fprintf(ERROR_CHANNEL, "Serialized msg cannot be null \n");
+        return -1;
+    }
+    if (deserialized_message == NULL) {
+        fprintf(ERROR_CHANNEL, "deserialized msg has to be initialized \n");
+        return -1;
+    }
+
+    //allocate memory for the deserialized message
+    char *
+
+
+}
