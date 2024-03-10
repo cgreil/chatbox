@@ -4,6 +4,13 @@
 #include "message.h"
 
 
+typedef enum {
+    TIMESTAMP = 0,
+    USERNAME = 1,
+    TYPE = 2,
+    CONTENT = 3
+}MESSAGE_PART_T;
+
 int create_message(message_t *message, MESSAGE_TYPE_T msg_type, user_t *sending_user, char **message_content,
                    size_t content_length) {
 
@@ -118,7 +125,7 @@ int serialize_message(serialized_msg_t *serial_msg, message_t *message_to_serial
     char *type_string;
     switch (message_to_serialize->message_type) {
         case PUBLIC_MESSAGE:
-            type_string = "PUB";
+            type_string = "PUBL";
             break;
         case PRIVATE_MESSAGE:
             type_string = "PRIV";
@@ -131,16 +138,18 @@ int serialize_message(serialized_msg_t *serial_msg, message_t *message_to_serial
             return -1;
     }
 
-    int serialized_size = sprintf(serial_string, "%s: %s: [%s]: %s", timestring,
-            message_to_serialize->sender->username,
-            type_string,
-            message_to_serialize->message_content);
+    int serialized_size = sprintf(serial_string, "%s: %s: [%s]: %s",
+                                  timestring,
+                                  message_to_serialize->sender->username,
+                                  type_string,
+                                  message_to_serialize->message_content);
 
     if (serialized_size <= 0) {
         fprintf(ERROR_CHANNEL, "Serializing the message failed");
         free(serial_string);
         return -1;
     }
+
     serial_msg->msg_string = serial_string;
     serial_msg->msg_length = serialized_size;
 
@@ -153,13 +162,51 @@ int deserialize_message(serialized_msg_t *serial_msg, message_t *deserialized_me
         fprintf(ERROR_CHANNEL, "Serialized msg cannot be null \n");
         return -1;
     }
+
     if (deserialized_message == NULL) {
         fprintf(ERROR_CHANNEL, "deserialized msg has to be initialized \n");
         return -1;
     }
 
-    //allocate memory for the deserialized message
-    char *
+    // allocate memory for the deserialized message
+    deserialized_message = malloc(sizeof(message_t));
+
+    // Prototyped tokenization using : as delimiter
+    // TODO: Use proper serialization technique so that : in message will not break program
+    char *delimiter = ":";
+    char *msg_token = strtok(serial_msg->msg_string, delimiter);
+
+    if (msg_token == NULL){
+        fprintf(ERROR_CHANNEL, "Error parsing message \n");
+        free(deserialized_message);
+        return -1;
+    }
+
+    MESSAGE_PART_T msg_part = 0;
+    while(msg_token != NULL) {
+        size_t token_length = strlen(msg_token);
+        switch (msg_part) {
+            case TIMESTAMP:
+                break;
+            case USERNAME:
+                break;
+            case TYPE:
+                break;
+            default:
+                fprintf(ERROR_CHANNEL, "Encountered bad msg part when deserializing message \n");
+                return -1;
+                break;
+
+        }
 
 
+
+        msg_token = strtok(NULL, delimiter);
+    }
+
+
+
+
+
+    return 0;
 }
