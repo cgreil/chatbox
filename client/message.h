@@ -22,14 +22,14 @@ typedef struct {
     user_t *sender;
     char *message_content;
     size_t content_length;
-    time_t creation_timestamp;
-}message_t;
+    struct tm *creation_timestamp;
+} message_t;
 
 typedef struct {
     // storing the stringified, i.e. serialized message to be sent
     char *msg_string;
     size_t msg_length;
-}serialized_msg_t;
+} serialized_msg_t;
 
 int create_message(message_t *message, MESSAGE_TYPE_T msg_type, user_t *sending_user, char **message_content,
                    size_t content_length);
@@ -45,6 +45,8 @@ int destroy_message(message_t *message);
 
 static int check_message_valid(message_t *message);
 
+static int time_from_string(char *time_string, struct tm *time_struct);
 
+static int string_from_time(struct tm *time_struct, char *time_string);
 
 #endif

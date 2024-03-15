@@ -13,6 +13,10 @@ typedef enum {
 
 int create_message(message_t *message, MESSAGE_TYPE_T msg_type, user_t *sending_user, char **message_content,
                    size_t content_length) {
+    /**
+     * Message creation function. Message type has to be allocated already
+     * before function call
+     */
 
     if (message == NULL) {
         fprintf(ERROR_CHANNEL, "Message may not be null \n");
@@ -38,9 +42,21 @@ int create_message(message_t *message, MESSAGE_TYPE_T msg_type, user_t *sending_
         message->message_content = content;
     }
 
-    time_t timestamp;
-    time(&timestamp);
+    // get raw time first, then transform into localtime
+    time_t rawtime;
+    time(&rawtime);
+    struct tm *timestamp = malloc(sizeof(struct tm));
+    memcpy(timestamp,localtime(&rawtime), sizeof(struct tm));
     message->creation_timestamp = timestamp;
+    return 0;
+}
+
+int destroy_message(message_t *message) {
+
+    free(message->message_content);
+    free(message->sender);
+
+    memset(message, 0, sizeof(message_t));
 
     return 0;
 }
@@ -67,17 +83,7 @@ int send_message(message_t *message) {
     return 0;
 }
 
-int destroy_message(message_t *message) {
-
-    free(message->message_content);
-    free(message->sender);
-
-    memset(message, 0, sizeof(message_t));
-
-    return 0;
-}
-
-int check_message_valid(message_t *message) {
+static int check_message_valid(message_t *message) {
 
     if (message == NULL) {
         fprintf(ERROR_CHANNEL, "Message may not be null \n");
@@ -111,14 +117,12 @@ int serialize_message(serialized_msg_t *serial_msg, message_t *message_to_serial
     msg_size += MAX_USERNAME_SIZE;
     msg_size += sizeof(MESSAGE_TYPE_T);
 
-    // TODO: put into external function
     size_t time_size = 30;
     char timestring[time_size];
-    struct tm *loc_time = localtime(&message_to_serialize->creation_timestamp);
-    strftime(timestring, time_size, "%Y-%m-%d: %H:%M", loc_time);
+    string_from_time(message_to_serialize->creation_timestamp, timestring);
 
-    msg_size += sizeof(time_size);
-
+    size_t actual_time_size = strlen(timestring);
+    msg_size += actual_time_size;
     char *serial_string = (char *) malloc(msg_size);
 
     // TODO: put into external function
@@ -135,10 +139,11 @@ int serialize_message(serialized_msg_t *serial_msg, message_t *message_to_serial
             break;
         case NONE:
             fprintf(ERROR_CHANNEL, "Cannot send message of type NONE \n");
+            free(serial_string);
             return -1;
     }
 
-    int serialized_size = sprintf(serial_string, "%s: %s: [%s]: %s",
+    int serialized_size = sprintf(serial_string, "%s:<> %s:<> [%s]:<> %s",
                                   timestring,
                                   message_to_serialize->sender->username,
                                   type_string,
@@ -168,12 +173,9 @@ int deserialize_message(serialized_msg_t *serial_msg, message_t *deserialized_me
         return -1;
     }
 
-    // allocate memory for the deserialized message
-    deserialized_message = malloc(sizeof(message_t));
 
-    // Prototyped tokenization using : as delimiter
-    // TODO: Use proper serialization technique so that : in message will not break program
-    char *delimiter = ":";
+    // TODO: Use proper serialization technique so that <> in message will not break program
+    char *delimiter = "<>";
     char *msg_token = strtok(serial_msg->msg_string, delimiter);
 
     if (msg_token == NULL){
@@ -182,31 +184,112 @@ int deserialize_message(serialized_msg_t *serial_msg, message_t *deserialized_me
         return -1;
     }
 
+    // declare intermediary
+    struct tm creation_time;
+    MESSAGE_TYPE_T message_type;
+    user_t sending_user;
+    char **message_content;
+    size_t content_length;
+
+    // For now, use Enum variable and increment through while loop
     MESSAGE_PART_T msg_part = 0;
     while(msg_token != NULL) {
         size_t token_length = strlen(msg_token);
         switch (msg_part) {
-            case TIMESTAMP:
+            case TIMESTAMP: {
+                // Create time struct and assign values
+                int time_ret =  time_from_string(msg_token, &creation_time);
+                if (time_ret == -1){
+                    fprintf(ERROR_CHANNEL, "Could not parse creation timestamp \n");
+                    free(deserialized_message);
+                    return -1;
+                }
+
                 break;
-            case USERNAME:
-                break;
+            }
             case TYPE:
+                if (strncmp(msg_token, "PRIV", 4) == 0) {
+                    message_type = PRIVATE_MESSAGE;
+                }
+                else if (strncmp(msg_token, "PUBL", 4) == 0) {
+                    message_type = PUBLIC_MESSAGE;
+                }
+                else if (strncmp(msg_token, "SERV", 4) == 0) {
+                    message_type = SERVER_MESSAGE;
+                } else {
+                    fprintf(ERROR_CHANNEL, "Could not retrieve message type");
+                    free(deserialized_message);
+                    return -1;
+                }
                 break;
+            case USERNAME: {
+                // create user struct and copy values into dedicated memory
+                strncpy(sending_user.username, msg_token, token_length);
+                // for now, use id 0 always
+                sending_user.user_id = 0;
+            }
+            break;
+            case CONTENT: {
+                message_content = &msg_token;
+                content_length = token_length;
+            }
+            break;
             default:
                 fprintf(ERROR_CHANNEL, "Encountered bad msg part when deserializing message \n");
+                free(deserialized_message);
                 return -1;
                 break;
-
         }
-
-
-
+        // get next token
+        msg_part++;
         msg_token = strtok(NULL, delimiter);
     }
 
+    // allocate memory for the deserialized message
+    deserialized_message = malloc(sizeof(message_t));
+    int creation_ret = create_message(deserialized_message, message_type, &sending_user, message_content, content_length);
+    if (creation_ret == -1) {
+        fprintf(ERROR_CHANNEL, "Could not create message");
+        free(deserialized_message);
+        return -1;
+    }
+    //successfully created message
+    return 0;
+}
 
+static int time_from_string(char *time_string, struct tm *time_struct) {
+    /**
+     * Naive string to time conversion
+     */
 
+    if (time_string == NULL || time_struct == NULL) {
+        fprintf(ERROR_CHANNEL, "Could not parse time from string \n");
+        return -1;
+    }
 
+    char * delimiter = ":";
+    // initial tokenization for hour
+    char *hour = strtok(time_string, delimiter);
+    time_struct->tm_hour = atoi(hour);
 
+    // second tokenization for minute
+    char *minute = strtok(NULL, delimiter);
+    time_struct->tm_min = atoi(minute);
+
+    return 0;
+}
+
+static int string_from_time(struct tm *time_struct, char *time_string) {
+
+    /**
+     * Naive time to string conversion
+     */
+    if (time_string == NULL) {
+        fprintf(ERROR_CHANNEL, "Could not parse time... \n");
+        return -1;
+    }
+    size_t max_timesize = 5;
+    // output hour and minute
+    strftime(time_string, max_timesize, "%k:%M", time_struct);
     return 0;
 }
