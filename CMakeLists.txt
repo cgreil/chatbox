@@ -29,3 +29,6 @@ add_executable(server
                 server/server.c
                 util/connection.h
 )
+
+add_executable(test test/message_tests.c)
+target_link_libraries(test check)
