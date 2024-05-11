@@ -137,7 +137,7 @@ int serialize_message(serialized_msg_t *serial_msg, message_t *message_to_serial
         case SERVER_MESSAGE:
             type_string = "SERV";
             break;
-        case NONE:
+        case INVALID_MESSAGE:
             fprintf(ERROR_CHANNEL, "Cannot send message of type NONE \n");
             free(serial_string);
             return -1;
@@ -257,7 +257,7 @@ int deserialize_message(serialized_msg_t *serial_msg, message_t *deserialized_me
     return 0;
 }
 
-static int time_from_string(char *time_string, struct tm *time_struct) {
+int time_from_string(char *time_string, struct tm *time_struct) {
     /**
      * Naive string to time conversion
      */
@@ -279,7 +279,7 @@ static int time_from_string(char *time_string, struct tm *time_struct) {
     return 0;
 }
 
-static int string_from_time(struct tm *time_struct, char *time_string) {
+int string_from_time(struct tm *time_struct, char *time_string) {
 
     /**
      * Naive time to string conversion

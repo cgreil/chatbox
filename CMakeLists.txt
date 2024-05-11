@@ -3,23 +3,23 @@ project(communication C)
 
 set(CMAKE_C_STANDARD 11)
 
-if(FALSE) # fake a block comment
-add_executable(dev
-        main.c
-        client/client.h
-        util/connection.h
-        server/server.h
-        server/server.c
-        client/client.c)
-endif()
+if (FALSE) # fake a block comment
+    add_executable(dev
+            main.c
+            client/client.h
+            util/connection.h
+            server/server.h
+            server/server.c
+            client/client.c)
+endif ()
 
 
 add_executable(client
-                client/client.h
-                client/client.c
-                util/connection.h
-                util/console.h
-                util/console.c
+        client/client.h
+        client/client.c
+        util/connection.h
+        util/console.h
+        util/console.c
         client/user.h
         client/user.c
         client/message.h
@@ -29,10 +29,18 @@ add_executable(client
 )
 
 add_executable(server
-                server/server.h
-                server/server.c
-                util/connection
+        server/server.h
+        server/server.c
+        util/connection
 )
 
-add_executable(test test/message_tests.c)
+add_executable(test test/message_tests.c
+        client/message.h
+        client/message.c
+        client/user.h
+        client/user.c
+        util/console.h
+        util/console.c)
+
+
 target_link_libraries(test check)

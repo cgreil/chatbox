@@ -14,7 +14,7 @@ typedef enum {
     SERVER_MESSAGE,
     PRIVATE_MESSAGE,
     PUBLIC_MESSAGE,
-    NONE
+    INVALID_MESSAGE
 } MESSAGE_TYPE_T;
 
 typedef struct {
@@ -45,8 +45,8 @@ int destroy_message(message_t *message);
 
 static int check_message_valid(message_t *message);
 
-static int time_from_string(char *time_string, struct tm *time_struct);
+int time_from_string(char *time_string, struct tm *time_struct);
 
-static int string_from_time(struct tm *time_struct, char *time_string);
+int string_from_time(struct tm *time_struct, char *time_string);
 
 #endif
