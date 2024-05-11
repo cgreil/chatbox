@@ -8,66 +8,93 @@
 
 int main() {
     fprintf(stdout, "Welcome to the client app \n");
-    connection_t connection;
-    loop_menu(&connection);
+
+
+    run_client();
     exit(EXIT_SUCCESS);
 }
 
-void loop_menu(connection_t *connection) {
+int run_client() {
+    fprintf(OUTPUT_CHANNEL, "Starting up client \n");
+
+    // setup clientside data
+    client_data_t *client_data = malloc(sizeof(client_data_t));
+    memset(client_data, 0, sizeof(client_data_t));
+    int setup_ret = setup_client_data(client_data);
+    if (setup_ret == -1) {
+        fprintf(ERROR_CHANNEL, "Client could not be established. Exiting ... \n");
+        // TODO: cleanup client_data
+        return EXIT_FAILURE;
+    }
+
+    // get and store username
+    char username[MAX_USERNAME_SIZE];
+    int username_ret = get_username_input(username);
+    if (username_ret == -1) {
+        fprintf(ERROR_CHANNEL, "Username input failed. Exiting ... \n");
+        // TODO: cleanup
+        return EXIT_FAILURE;
+    }
+    create_user(client_data->user, username);
+    //client main loop
+    loop_menu(client_data);
+
+    return 0;
+}
+
+int setup_client_data(client_data_t *client_data) {
+    if (client_data == NULL) {
+        fprintf(ERROR_CHANNEL, "Invalid Initalization of client data \n");
+        return -1;
+    }
+    connection_t *server_connection = malloc(sizeof(connection_t));
+    user_t *client_user = malloc(sizeof(user_t));
+
+    client_data->server_connection = server_connection;
+    client_data->user = client_user;
+
+    return 0;
+}
+
+int loop_menu(client_data_t *client_data) {
+    fprintf(OUTPUT_CHANNEL, "Logged in as %s", client_data->user->username);
+
     ACTION_T next_action = NONE;
     while(next_action != QUIT) {
         show_menu();
-        next_action = get_user_action();
-        handle_action(next_action,  connection);
+        next_action = parse_action();
+        handle_action(next_action, client_data);
     }
+    return 0;
 }
 
 void show_menu() {
     fprintf(OUTPUT_CHANNEL, "Choose your action: \n");
     fprintf(OUTPUT_CHANNEL, "[S]end message \n");
-    fprintf(OUTPUT_CHANNEL, "[C]hoose username \n");
+    fprintf(OUTPUT_CHANNEL, "[R]egister user account \n");
+    fprintf(OUTPUT_CHANNEL, "[C]hange username \n");
     fprintf(OUTPUT_CHANNEL, "[O]pen connection to server \n");
     fprintf(OUTPUT_CHANNEL, "[Q]uit program \n");
     fflush(OUTPUT_CHANNEL);
 }
 
-ACTION_T get_user_action() {
+void handle_action(ACTION_T action, client_data_t *client_data) {
 
-    char input = ' ';
-    while (input == ' ' || input == '\n') {
-        input = (char) fgetc(INPUT_CHANNEL);
-    }
-    switch (tolower(input)) {
-        case 's':
-            return SEND_MESSAGE;
-        case 'c':
-            return CHOOSE_USERNAME;
-        case 'o':
-            return OPEN_CONNECTION;
-        case 'q':
-            return QUIT;
-        default:
-            return INVALID;
-    }
-}
-
-void handle_action(ACTION_T action, connection_t *connection) {
-
-    if (connection == NULL) {
+    if (client_data == NULL) {
         fprintf(ERROR_CHANNEL, "Invalid connection. Exiting ... ");
         _exit(EXIT_FAILURE);
     }
+
     clear_screen();
     switch (action) {
         case SEND_MESSAGE:
-            send_msg_to_server(connection);
+            send_msg_to_server(client_data->server_connection);
             break;
-        case CHOOSE_USERNAME: {
-            fprintf(OUTPUT_CHANNEL, "Handling action CHANGE_USERNAME \n");
+        case CHANGE_USERNAME:
+            change_username(client_data->user);
             break;
-        }
         case OPEN_CONNECTION:
-            open_server_connection(connection);
+            open_server_connection(client_data->server_connection);
             break;
         case QUIT:
             fprintf(OUTPUT_CHANNEL, "The service will now shut down \n");
@@ -75,6 +102,7 @@ void handle_action(ACTION_T action, connection_t *connection) {
             break;
         case INVALID:
             fprintf(OUTPUT_CHANNEL, "Invalid action. Please specify a different action \n");
+            fflush(OUTPUT_CHANNEL);
             break;
         case NONE:
             break;
@@ -84,7 +112,7 @@ void handle_action(ACTION_T action, connection_t *connection) {
 void send_msg_to_server(connection_t *connection) {
     fprintf(OUTPUT_CHANNEL, "Handling action SEND_MESSAGE \n");
     char *msg_buffer = calloc(MAX_MSG_SIZE, sizeof(char));
-    if (get_user_msg(msg_buffer) == -1) {
+    if (get_msg_input(msg_buffer) == -1) {
         fprintf(ERROR_CHANNEL, "Could not retrieve user message");
         return;
     }
@@ -98,7 +126,7 @@ void send_msg_to_server(connection_t *connection) {
     free(msg_buffer);
 }
 
-int get_user_msg(char *msg_buffer) {
+int get_msg_input(char *msg_buffer) {
     // set input to end of stdin so that previously written newline is not read
     flush_input();
     fprintf(OUTPUT_CHANNEL, "Please enter your message: \n");
@@ -134,9 +162,24 @@ int open_server_connection(connection_t *connection) {
     return 0;
 }
 
-void flush_input() {
-    int c;
-    while ((c = getchar()) != '\n' && c != EOF ) { }
+ACTION_T parse_action() {
+
+    char input = ' ';
+    while (input == ' ' || input == '\n') {
+        input = (char) fgetc(INPUT_CHANNEL);
+    }
+    switch (tolower(input)) {
+        case 's':
+            return SEND_MESSAGE;
+        case 'c':
+            return CHANGE_USERNAME;
+        case 'o':
+            return OPEN_CONNECTION;
+        case 'q':
+            return QUIT;
+        default:
+            return INVALID;
+    }
 }
 
 void clear_screen() {

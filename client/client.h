@@ -7,6 +7,8 @@
 #include <stdbool.h>
 #include <string.h>
 #include "../util/connection.h"
+#include "../util/console.h"
+#include "user.h"
 
 #define BUFFER_SIZE 512
 
@@ -20,32 +22,37 @@
 
 typedef enum {
     SEND_MESSAGE = 0,
-    CHOOSE_USERNAME = 1,
+    CHANGE_USERNAME = 1,
     QUIT = 2,
     OPEN_CONNECTION = 3,
     INVALID = 4,
     NONE = 5
 }ACTION_T;
 
-void loop_menu(connection_t *connection);
+typedef struct {
+    user_t *user;
+    connection_t *server_connection;
+} client_data_t;
+
+int setup_client_data(client_data_t *client_data);
+
+int run_client();
+
+int loop_menu(client_data_t *client_data);
 
 void show_menu();
 
 void send_msg_to_server(connection_t *connection);
 
-ACTION_T get_user_action();
+ACTION_T parse_action();
 
-void handle_action(ACTION_T action, connection_t *connection);
+void handle_action(ACTION_T action, client_data_t *client_data);
 
-int get_user_msg(char *msg_buffer);
+int get_msg_input(char *msg_buffer);
 
 int open_server_connection(connection_t *connection);
 
 void clear_screen();
-
-void flush_input();
-
-
 
 
 #endif

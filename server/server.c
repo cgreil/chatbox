@@ -23,20 +23,23 @@ int run_server() {
     size_t num_connected = 0;
 
     // TODO: Cleanup
-    //on_exit(cleanup_server, client_connections, num_connected, socket_fd);
-    //start listening
+    // on_exit(cleanup_server, client_connections, num_connected, socket_fd);
+    // main server loop
     while (1) {
         sleep(1);
-
         // accept client connections on the socket if more clients are still possible
         if (num_connected < MAX_CLIENTS) {
             int new_client_fd = handle_client_connections(socket_fd);
-            client_connections[num_connected] = new_client_fd;
-            num_connected++;
+            // check if client has valid connection
+            if (new_client_fd != -1) {
+                client_connections[num_connected] = new_client_fd;
+                num_connected++;
+            }
         } else {
             fprintf(OUTPUT_CHANNEL, "Maximal number of clients connected: %zu/%d \n", num_connected, MAX_CLIENTS);
         }
 
+        // check for readable sockets
         fd_set readset;
         int num_readable_fds = get_available_sockets(&readset, client_connections, num_connected);
         if (num_readable_fds == 0) {
@@ -45,8 +48,8 @@ int run_server() {
         } else {
             fprintf(OUTPUT_CHANNEL, "Receiving client messages \n");
         }
-        for (int client_id = 0; client_id < num_connected; ++client_id) {
 
+        for (int client_id = 0; client_id < num_connected; ++client_id) {
             // check whether fd is in readset
             if (!FD_ISSET(client_connections[client_id], &readset)) {
                 continue;
@@ -131,17 +134,19 @@ int handle_client_connections(int socket_fd) {
     if (new_client_fd == -1) {
         // case where no new client is connecting
         fprintf(ERROR_CHANNEL, "No client connected\n");
+        return -1;
     } else {
         fprintf(OUTPUT_CHANNEL, "Successfully accepted new client \n");
+        return new_client_fd;
     }
-
-    return 0;
 }
 
 int read_msg_from_client(int fd_to_read, int client_id) {
     size_t charbuf_size = (BUFFER_SIZE + 1) * sizeof(char);
     char *message_buffer = calloc(charbuf_size, 1);
     ssize_t num_read_bytes = read(fd_to_read, message_buffer, charbuf_size);
+
+    // print message
     if (num_read_bytes > 0 && message_buffer != NULL) {
         fprintf(OUTPUT_CHANNEL, "Received message from client %d: %s \n", client_id, message_buffer);
     } else {
