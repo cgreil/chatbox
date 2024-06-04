@@ -12,6 +12,12 @@
 #define INPUT_CHANNEL stdin
 #define ERROR_CHANNEL stderr
 
+#include <stdio.h>
+#include <unistd.h>
+#include <sys/socket.h>
+#include <sys/un.h>
+#include <stdlib.h>
+#include <netinet/in.h>
 #include "../util/connection.h"
 
 int run_server();

@@ -1,15 +1,13 @@
-#include <stdio.h>
-#include <unistd.h>
-#include <sys/socket.h>
-#include <sys/un.h>
-#include <stdlib.h>
-#include <netinet/in.h>
 #include "server.h"
 
 int main() {
     fprintf(OUTPUT_CHANNEL, "Starting up the server... \n");
 
     int server_ret = run_server();
+    if (server_ret == -1) {
+        fprintf(OUTPUT_CHANNEL, "Server could not be started. Exiting");
+        exit(EXIT_FAILURE);
+    }
     return 0;
 }
 
@@ -55,6 +53,9 @@ int run_server() {
                 continue;
             }
             int message_handling = read_msg_from_client(client_connections[client_id], client_id + 1);
+            if (message_handling == -1) {
+                fprintf(ERROR_CHANNEL, "Error when receiving client message. \n");
+            }
         }
     }
     fprintf(OUTPUT_CHANNEL, "Shutting down server \n");
