@@ -11,8 +11,10 @@ int create_user(user_t *user, char *username) {
         fprintf(ERROR_CHANNEL, "user cannot be null \n");
         return -1;
     }
-    char *username_buffer = malloc(MAX_USERNAME_SIZE);
-    strncpy(username_buffer, username, MAX_USERNAME_SIZE);
+    size_t buffer_size = strlen(username + 1);
+    
+    char *username_buffer = malloc(buffer_size);
+    strncpy(username_buffer, username, buffer_size);
     user->username = username_buffer;
 
     fprintf(OUTPUT_CHANNEL, "User %s was successfully created \n", user->username);
@@ -75,14 +77,21 @@ int copy_user(user_t *src, user_t *dest) {
 
 
 int get_username_input(char *username_buffer) {
-    // set input to end of stdin so that previously written newline is not read
-    flush_input();
+    
+    char input_buffer[MAX_USERNAME_SIZE];
+    
     fprintf(OUTPUT_CHANNEL, "Please enter your username: \n");
-    char *msg = fgets(username_buffer, MAX_USERNAME_SIZE, stdin);
-    if (msg == NULL) {
+    flush_input();
+    char *input = fgets(input_buffer, MAX_USERNAME_SIZE, stdin);
+    //flush_input();
+    
+    if (input == NULL) {
         fprintf(ERROR_CHANNEL, "Could not read username \n");
         return -1;
     }
+    // remove newline from input 
+    strncpy(username_buffer, input_buffer, strlen(input_buffer)); 
+    
     return 0;
 }
 

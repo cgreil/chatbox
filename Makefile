@@ -38,4 +38,6 @@ clean:
 	rm -f connection.o
 	rm -f message.o
 	rm -f console.o
-
+	rm -f socket
+	rm -f clientapp
+	rm -f serverapp

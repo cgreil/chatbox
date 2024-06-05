@@ -38,6 +38,10 @@ int setup_client_data(client_data_t *client_data);
 
 int run_client();
 
+int startup_menu();
+
+int register_user(client_data_t *client_data);
+
 int loop_menu(client_data_t *client_data);
 
 void show_menu();

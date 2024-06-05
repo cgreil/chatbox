@@ -7,9 +7,7 @@
 #define MAX_MSG_SIZE 1024
 
 int main() {
-    fprintf(stdout, "Welcome to the client app \n");
-
-
+    
     run_client();
     exit(EXIT_SUCCESS);
 }
@@ -17,9 +15,10 @@ int main() {
 int run_client() {
     fprintf(OUTPUT_CHANNEL, "Starting up client \n");
 
+    startup_menu();
+    
     // setup clientside data
     client_data_t *client_data = malloc(sizeof(client_data_t));
-    memset(client_data, 0, sizeof(client_data_t));
     int setup_ret = setup_client_data(client_data);
     if (setup_ret == -1) {
         fprintf(ERROR_CHANNEL, "Client could not be established. Exiting ... \n");
@@ -27,22 +26,53 @@ int run_client() {
         return EXIT_FAILURE;
     }
 
-    // get and store username
-    char username[MAX_USERNAME_SIZE];
-    int username_ret = get_username_input(username);
-    if (username_ret == -1) {
-        fprintf(ERROR_CHANNEL, "Username input failed. Exiting ... \n");
-        // TODO: cleanup
-        return EXIT_FAILURE;
-    }
-    create_user(client_data->user, username);
-    //client main loop
+    register_user(client_data);
+
+   //client main loop
     loop_menu(client_data);
 
     return 0;
 }
 
+int startup_menu() {
+    fprintf(OUTPUT_CHANNEL, "Welcome!\n");
+    fprintf(OUTPUT_CHANNEL, "Press [R] to register or press [Q] to quit the application \n");
+
+    int user_reply = getchar();
+    char action = tolower((char) user_reply);
+
+    if (action == 'r') {
+        return 1;
+    }
+    else if (action == 'q') {
+        fprintf(OUTPUT_CHANNEL, "Shutting down ... \n");
+        exit(EXIT_SUCCESS);
+    }
+    else {
+        fprintf(OUTPUT_CHANNEL, "Bad Usage. Shutting down ... \n");
+        exit(EXIT_FAILURE);
+    }
+}
+
+int register_user(client_data_t *client_data) {
+    // TODO: put into user.c
+    // get and store username
+    char username_buffer[MAX_USERNAME_SIZE];
+    //flush_input(); - only if there are unwanted characters in buffer
+    int username_ret = get_username_input(username_buffer);
+    if (username_ret == -1) {
+        fprintf(ERROR_CHANNEL, "Username input failed. Exiting ... \n");
+        // TODO: cleanup
+        return EXIT_FAILURE;
+    }
+    create_user(client_data->user, username_buffer);
+    fprintf(OUTPUT_CHANNEL, "Successfully registered as user %s", client_data->user->username);
+    
+    return 0;
+} 
+
 int setup_client_data(client_data_t *client_data) {
+
     if (client_data == NULL) {
         fprintf(ERROR_CHANNEL, "Invalid Initalization of client data \n");
         return -1;
@@ -54,10 +84,11 @@ int setup_client_data(client_data_t *client_data) {
     client_data->user = client_user;
 
     return 0;
-}
+} 
 
 int loop_menu(client_data_t *client_data) {
-    fprintf(OUTPUT_CHANNEL, "Logged in as %s", client_data->user->username);
+    
+    fprintf(OUTPUT_CHANNEL, "%s, what do you want to do? \n", client_data->user->username);
 
     ACTION_T next_action = NONE;
     while(next_action != QUIT) {
@@ -71,7 +102,6 @@ int loop_menu(client_data_t *client_data) {
 void show_menu() {
     fprintf(OUTPUT_CHANNEL, "Choose your action: \n");
     fprintf(OUTPUT_CHANNEL, "[S]end message \n");
-    fprintf(OUTPUT_CHANNEL, "[R]egister user account \n");
     fprintf(OUTPUT_CHANNEL, "[C]hange username \n");
     fprintf(OUTPUT_CHANNEL, "[O]pen connection to server \n");
     fprintf(OUTPUT_CHANNEL, "[Q]uit program \n");
@@ -81,11 +111,11 @@ void show_menu() {
 void handle_action(ACTION_T action, client_data_t *client_data) {
 
     if (client_data == NULL) {
-        fprintf(ERROR_CHANNEL, "Invalid connection. Exiting ... ");
-        _exit(EXIT_FAILURE);
+        fprintf(ERROR_CHANNEL, "Invalid connection. Exiting ... \n");
+        exit(EXIT_FAILURE);
     }
 
-    clear_screen();
+    //clear_screen();
     switch (action) {
         case SEND_MESSAGE:
             send_msg_to_server(client_data->server_connection);
@@ -110,10 +140,10 @@ void handle_action(ACTION_T action, client_data_t *client_data) {
 }
 
 void send_msg_to_server(connection_t *connection) {
-    fprintf(OUTPUT_CHANNEL, "Handling action SEND_MESSAGE \n");
+    fprintf(OUTPUT_CHANNEL, "Input message to send: \n");
     char *msg_buffer = calloc(MAX_MSG_SIZE, sizeof(char));
     if (get_msg_input(msg_buffer) == -1) {
-        fprintf(ERROR_CHANNEL, "Could not retrieve user message");
+        fprintf(ERROR_CHANNEL, "Could not retrieve user message \n");
         return;
     }
     //fprintf(OUTPUT_CHANNEL, "Message: %s", msg_buffer);
@@ -128,9 +158,9 @@ void send_msg_to_server(connection_t *connection) {
 
 int get_msg_input(char *msg_buffer) {
     // set input to end of stdin so that previously written newline is not read
-    flush_input();
     fprintf(OUTPUT_CHANNEL, "Please enter your message: \n");
     char *msg = fgets(msg_buffer, MAX_MSG_SIZE, stdin);
+    flush_input();
     if (msg == NULL) {
         fprintf(ERROR_CHANNEL, "Could not read input \n");
         return -1;
@@ -168,6 +198,7 @@ ACTION_T parse_action() {
     while (input == ' ' || input == '\n') {
         input = (char) fgetc(INPUT_CHANNEL);
     }
+    flush_input();
     switch (tolower(input)) {
         case 's':
             return SEND_MESSAGE;
