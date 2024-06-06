@@ -6,4 +6,31 @@ message SerializedUser {
     string username = 2;
 }
 
+message SerializedTimestamp {
+    int32 tm_sec = 1;
+    int32 tm_min = 2;
+    int32 tm_hour = 3;
+    int32 tm_mday = 4;
+    int32 tm_mon = 5;
+    int32 tm_year = 6;
+    int32 tm_wday = 7;
+    int32 tm_yday = 8;
+    int32 tm_isdst = 9;
+}
+
+enum MessageType {
+    SERVER_MESSAGE = 0;
+    PRIVATE_MESSAGE = 1;
+    PUBLIC_MESSAGE = 2;
+    INVALID_MESSAGE = 3;
+}
+
+message SerializedMessage {
+    MessageType message_type = 1;
+    SerializedUser user_type = 2;
+    string message_content = 3;
+    int32 content_length = 4;
+    SerializedTimestamp creation_timestamp = 5;
+}
+
 

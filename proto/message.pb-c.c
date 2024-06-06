@@ -52,6 +52,96 @@ void   serialized_user__free_unpacked
   assert(message->base.descriptor == &serialized_user__descriptor);
   protobuf_c_message_free_unpacked ((ProtobufCMessage*)message, allocator);
 }
+void   serialized_timestamp__init
+                     (SerializedTimestamp         *message)
+{
+  static const SerializedTimestamp init_value = SERIALIZED_TIMESTAMP__INIT;
+  *message = init_value;
+}
+size_t serialized_timestamp__get_packed_size
+                     (const SerializedTimestamp *message)
+{
+  assert(message->base.descriptor == &serialized_timestamp__descriptor);
+  return protobuf_c_message_get_packed_size ((const ProtobufCMessage*)(message));
+}
+size_t serialized_timestamp__pack
+                     (const SerializedTimestamp *message,
+                      uint8_t       *out)
+{
+  assert(message->base.descriptor == &serialized_timestamp__descriptor);
+  return protobuf_c_message_pack ((const ProtobufCMessage*)message, out);
+}
+size_t serialized_timestamp__pack_to_buffer
+                     (const SerializedTimestamp *message,
+                      ProtobufCBuffer *buffer)
+{
+  assert(message->base.descriptor == &serialized_timestamp__descriptor);
+  return protobuf_c_message_pack_to_buffer ((const ProtobufCMessage*)message, buffer);
+}
+SerializedTimestamp *
+       serialized_timestamp__unpack
+                     (ProtobufCAllocator  *allocator,
+                      size_t               len,
+                      const uint8_t       *data)
+{
+  return (SerializedTimestamp *)
+     protobuf_c_message_unpack (&serialized_timestamp__descriptor,
+                                allocator, len, data);
+}
+void   serialized_timestamp__free_unpacked
+                     (SerializedTimestamp *message,
+                      ProtobufCAllocator *allocator)
+{
+  if(!message)
+    return;
+  assert(message->base.descriptor == &serialized_timestamp__descriptor);
+  protobuf_c_message_free_unpacked ((ProtobufCMessage*)message, allocator);
+}
+void   serialized_message__init
+                     (SerializedMessage         *message)
+{
+  static const SerializedMessage init_value = SERIALIZED_MESSAGE__INIT;
+  *message = init_value;
+}
+size_t serialized_message__get_packed_size
+                     (const SerializedMessage *message)
+{
+  assert(message->base.descriptor == &serialized_message__descriptor);
+  return protobuf_c_message_get_packed_size ((const ProtobufCMessage*)(message));
+}
+size_t serialized_message__pack
+                     (const SerializedMessage *message,
+                      uint8_t       *out)
+{
+  assert(message->base.descriptor == &serialized_message__descriptor);
+  return protobuf_c_message_pack ((const ProtobufCMessage*)message, out);
+}
+size_t serialized_message__pack_to_buffer
+                     (const SerializedMessage *message,
+                      ProtobufCBuffer *buffer)
+{
+  assert(message->base.descriptor == &serialized_message__descriptor);
+  return protobuf_c_message_pack_to_buffer ((const ProtobufCMessage*)message, buffer);
+}
+SerializedMessage *
+       serialized_message__unpack
+                     (ProtobufCAllocator  *allocator,
+                      size_t               len,
+                      const uint8_t       *data)
+{
+  return (SerializedMessage *)
+     protobuf_c_message_unpack (&serialized_message__descriptor,
+                                allocator, len, data);
+}
+void   serialized_message__free_unpacked
+                     (SerializedMessage *message,
+                      ProtobufCAllocator *allocator)
+{
+  if(!message)
+    return;
+  assert(message->base.descriptor == &serialized_message__descriptor);
+  protobuf_c_message_free_unpacked ((ProtobufCMessage*)message, allocator);
+}
 static const ProtobufCFieldDescriptor serialized_user__field_descriptors[2] =
 {
   {
@@ -102,4 +192,268 @@ const ProtobufCMessageDescriptor serialized_user__descriptor =
   1,  serialized_user__number_ranges,
   (ProtobufCMessageInit) serialized_user__init,
   NULL,NULL,NULL    /* reserved[123] */
+};
+static const ProtobufCFieldDescriptor serialized_timestamp__field_descriptors[9] =
+{
+  {
+    "tm_sec",
+    1,
+    PROTOBUF_C_LABEL_NONE,
+    PROTOBUF_C_TYPE_INT32,
+    0,   /* quantifier_offset */
+    offsetof(SerializedTimestamp, tm_sec),
+    NULL,
+    NULL,
+    0,             /* flags */
+    0,NULL,NULL    /* reserved1,reserved2, etc */
+  },
+  {
+    "tm_min",
+    2,
+    PROTOBUF_C_LABEL_NONE,
+    PROTOBUF_C_TYPE_INT32,
+    0,   /* quantifier_offset */
+    offsetof(SerializedTimestamp, tm_min),
+    NULL,
+    NULL,
+    0,             /* flags */
+    0,NULL,NULL    /* reserved1,reserved2, etc */
+  },
+  {
+    "tm_hour",
+    3,
+    PROTOBUF_C_LABEL_NONE,
+    PROTOBUF_C_TYPE_INT32,
+    0,   /* quantifier_offset */
+    offsetof(SerializedTimestamp, tm_hour),
+    NULL,
+    NULL,
+    0,             /* flags */
+    0,NULL,NULL    /* reserved1,reserved2, etc */
+  },
+  {
+    "tm_mday",
+    4,
+    PROTOBUF_C_LABEL_NONE,
+    PROTOBUF_C_TYPE_INT32,
+    0,   /* quantifier_offset */
+    offsetof(SerializedTimestamp, tm_mday),
+    NULL,
+    NULL,
+    0,             /* flags */
+    0,NULL,NULL    /* reserved1,reserved2, etc */
+  },
+  {
+    "tm_mon",
+    5,
+    PROTOBUF_C_LABEL_NONE,
+    PROTOBUF_C_TYPE_INT32,
+    0,   /* quantifier_offset */
+    offsetof(SerializedTimestamp, tm_mon),
+    NULL,
+    NULL,
+    0,             /* flags */
+    0,NULL,NULL    /* reserved1,reserved2, etc */
+  },
+  {
+    "tm_year",
+    6,
+    PROTOBUF_C_LABEL_NONE,
+    PROTOBUF_C_TYPE_INT32,
+    0,   /* quantifier_offset */
+    offsetof(SerializedTimestamp, tm_year),
+    NULL,
+    NULL,
+    0,             /* flags */
+    0,NULL,NULL    /* reserved1,reserved2, etc */
+  },
+  {
+    "tm_wday",
+    7,
+    PROTOBUF_C_LABEL_NONE,
+    PROTOBUF_C_TYPE_INT32,
+    0,   /* quantifier_offset */
+    offsetof(SerializedTimestamp, tm_wday),
+    NULL,
+    NULL,
+    0,             /* flags */
+    0,NULL,NULL    /* reserved1,reserved2, etc */
+  },
+  {
+    "tm_yday",
+    8,
+    PROTOBUF_C_LABEL_NONE,
+    PROTOBUF_C_TYPE_INT32,
+    0,   /* quantifier_offset */
+    offsetof(SerializedTimestamp, tm_yday),
+    NULL,
+    NULL,
+    0,             /* flags */
+    0,NULL,NULL    /* reserved1,reserved2, etc */
+  },
+  {
+    "tm_isdst",
+    9,
+    PROTOBUF_C_LABEL_NONE,
+    PROTOBUF_C_TYPE_INT32,
+    0,   /* quantifier_offset */
+    offsetof(SerializedTimestamp, tm_isdst),
+    NULL,
+    NULL,
+    0,             /* flags */
+    0,NULL,NULL    /* reserved1,reserved2, etc */
+  },
+};
+static const unsigned serialized_timestamp__field_indices_by_name[] = {
+  2,   /* field[2] = tm_hour */
+  8,   /* field[8] = tm_isdst */
+  3,   /* field[3] = tm_mday */
+  1,   /* field[1] = tm_min */
+  4,   /* field[4] = tm_mon */
+  0,   /* field[0] = tm_sec */
+  6,   /* field[6] = tm_wday */
+  7,   /* field[7] = tm_yday */
+  5,   /* field[5] = tm_year */
+};
+static const ProtobufCIntRange serialized_timestamp__number_ranges[1 + 1] =
+{
+  { 1, 0 },
+  { 0, 9 }
+};
+const ProtobufCMessageDescriptor serialized_timestamp__descriptor =
+{
+  PROTOBUF_C__MESSAGE_DESCRIPTOR_MAGIC,
+  "SerializedTimestamp",
+  "SerializedTimestamp",
+  "SerializedTimestamp",
+  "",
+  sizeof(SerializedTimestamp),
+  9,
+  serialized_timestamp__field_descriptors,
+  serialized_timestamp__field_indices_by_name,
+  1,  serialized_timestamp__number_ranges,
+  (ProtobufCMessageInit) serialized_timestamp__init,
+  NULL,NULL,NULL    /* reserved[123] */
+};
+static const ProtobufCFieldDescriptor serialized_message__field_descriptors[5] =
+{
+  {
+    "message_type",
+    1,
+    PROTOBUF_C_LABEL_NONE,
+    PROTOBUF_C_TYPE_ENUM,
+    0,   /* quantifier_offset */
+    offsetof(SerializedMessage, message_type),
+    &message_type__descriptor,
+    NULL,
+    0,             /* flags */
+    0,NULL,NULL    /* reserved1,reserved2, etc */
+  },
+  {
+    "user_type",
+    2,
+    PROTOBUF_C_LABEL_NONE,
+    PROTOBUF_C_TYPE_MESSAGE,
+    0,   /* quantifier_offset */
+    offsetof(SerializedMessage, user_type),
+    &serialized_user__descriptor,
+    NULL,
+    0,             /* flags */
+    0,NULL,NULL    /* reserved1,reserved2, etc */
+  },
+  {
+    "message_content",
+    3,
+    PROTOBUF_C_LABEL_NONE,
+    PROTOBUF_C_TYPE_STRING,
+    0,   /* quantifier_offset */
+    offsetof(SerializedMessage, message_content),
+    NULL,
+    &protobuf_c_empty_string,
+    0,             /* flags */
+    0,NULL,NULL    /* reserved1,reserved2, etc */
+  },
+  {
+    "content_length",
+    4,
+    PROTOBUF_C_LABEL_NONE,
+    PROTOBUF_C_TYPE_INT32,
+    0,   /* quantifier_offset */
+    offsetof(SerializedMessage, content_length),
+    NULL,
+    NULL,
+    0,             /* flags */
+    0,NULL,NULL    /* reserved1,reserved2, etc */
+  },
+  {
+    "creation_timestamp",
+    5,
+    PROTOBUF_C_LABEL_NONE,
+    PROTOBUF_C_TYPE_MESSAGE,
+    0,   /* quantifier_offset */
+    offsetof(SerializedMessage, creation_timestamp),
+    &serialized_timestamp__descriptor,
+    NULL,
+    0,             /* flags */
+    0,NULL,NULL    /* reserved1,reserved2, etc */
+  },
+};
+static const unsigned serialized_message__field_indices_by_name[] = {
+  3,   /* field[3] = content_length */
+  4,   /* field[4] = creation_timestamp */
+  2,   /* field[2] = message_content */
+  0,   /* field[0] = message_type */
+  1,   /* field[1] = user_type */
+};
+static const ProtobufCIntRange serialized_message__number_ranges[1 + 1] =
+{
+  { 1, 0 },
+  { 0, 5 }
+};
+const ProtobufCMessageDescriptor serialized_message__descriptor =
+{
+  PROTOBUF_C__MESSAGE_DESCRIPTOR_MAGIC,
+  "SerializedMessage",
+  "SerializedMessage",
+  "SerializedMessage",
+  "",
+  sizeof(SerializedMessage),
+  5,
+  serialized_message__field_descriptors,
+  serialized_message__field_indices_by_name,
+  1,  serialized_message__number_ranges,
+  (ProtobufCMessageInit) serialized_message__init,
+  NULL,NULL,NULL    /* reserved[123] */
+};
+static const ProtobufCEnumValue message_type__enum_values_by_number[4] =
+{
+  { "SERVER_MESSAGE", "MESSAGE_TYPE__SERVER_MESSAGE", 0 },
+  { "PRIVATE_MESSAGE", "MESSAGE_TYPE__PRIVATE_MESSAGE", 1 },
+  { "PUBLIC_MESSAGE", "MESSAGE_TYPE__PUBLIC_MESSAGE", 2 },
+  { "INVALID_MESSAGE", "MESSAGE_TYPE__INVALID_MESSAGE", 3 },
+};
+static const ProtobufCIntRange message_type__value_ranges[] = {
+{0, 0},{0, 4}
+};
+static const ProtobufCEnumValueIndex message_type__enum_values_by_name[4] =
+{
+  { "INVALID_MESSAGE", 3 },
+  { "PRIVATE_MESSAGE", 1 },
+  { "PUBLIC_MESSAGE", 2 },
+  { "SERVER_MESSAGE", 0 },
+};
+const ProtobufCEnumDescriptor message_type__descriptor =
+{
+  PROTOBUF_C__ENUM_DESCRIPTOR_MAGIC,
+  "MessageType",
+  "MessageType",
+  "MessageType",
+  "",
+  4,
+  message_type__enum_values_by_number,
+  4,
+  message_type__enum_values_by_name,
+  1,
+  message_type__value_ranges,
+  NULL,NULL,NULL,NULL   /* reserved[1234] */
 };

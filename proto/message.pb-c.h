@@ -16,10 +16,19 @@ PROTOBUF_C__BEGIN_DECLS
 
 
 typedef struct SerializedUser SerializedUser;
+typedef struct SerializedTimestamp SerializedTimestamp;
+typedef struct SerializedMessage SerializedMessage;
 
 
 /* --- enums --- */
 
+typedef enum _MessageType {
+  MESSAGE_TYPE__SERVER_MESSAGE = 0,
+  MESSAGE_TYPE__PRIVATE_MESSAGE = 1,
+  MESSAGE_TYPE__PUBLIC_MESSAGE = 2,
+  MESSAGE_TYPE__INVALID_MESSAGE = 3
+    PROTOBUF_C__FORCE_ENUM_TO_BE_INT_SIZE(MESSAGE_TYPE)
+} MessageType;
 
 /* --- messages --- */
 
@@ -32,6 +41,38 @@ struct  SerializedUser
 #define SERIALIZED_USER__INIT \
  { PROTOBUF_C_MESSAGE_INIT (&serialized_user__descriptor) \
     , 0, (char *)protobuf_c_empty_string }
+
+
+struct  SerializedTimestamp
+{
+  ProtobufCMessage base;
+  int32_t tm_sec;
+  int32_t tm_min;
+  int32_t tm_hour;
+  int32_t tm_mday;
+  int32_t tm_mon;
+  int32_t tm_year;
+  int32_t tm_wday;
+  int32_t tm_yday;
+  int32_t tm_isdst;
+};
+#define SERIALIZED_TIMESTAMP__INIT \
+ { PROTOBUF_C_MESSAGE_INIT (&serialized_timestamp__descriptor) \
+    , 0, 0, 0, 0, 0, 0, 0, 0, 0 }
+
+
+struct  SerializedMessage
+{
+  ProtobufCMessage base;
+  MessageType message_type;
+  SerializedUser *user_type;
+  char *message_content;
+  int32_t content_length;
+  SerializedTimestamp *creation_timestamp;
+};
+#define SERIALIZED_MESSAGE__INIT \
+ { PROTOBUF_C_MESSAGE_INIT (&serialized_message__descriptor) \
+    , MESSAGE_TYPE__SERVER_MESSAGE, NULL, (char *)protobuf_c_empty_string, 0, NULL }
 
 
 /* SerializedUser methods */
@@ -53,10 +94,54 @@ SerializedUser *
 void   serialized_user__free_unpacked
                      (SerializedUser *message,
                       ProtobufCAllocator *allocator);
+/* SerializedTimestamp methods */
+void   serialized_timestamp__init
+                     (SerializedTimestamp         *message);
+size_t serialized_timestamp__get_packed_size
+                     (const SerializedTimestamp   *message);
+size_t serialized_timestamp__pack
+                     (const SerializedTimestamp   *message,
+                      uint8_t             *out);
+size_t serialized_timestamp__pack_to_buffer
+                     (const SerializedTimestamp   *message,
+                      ProtobufCBuffer     *buffer);
+SerializedTimestamp *
+       serialized_timestamp__unpack
+                     (ProtobufCAllocator  *allocator,
+                      size_t               len,
+                      const uint8_t       *data);
+void   serialized_timestamp__free_unpacked
+                     (SerializedTimestamp *message,
+                      ProtobufCAllocator *allocator);
+/* SerializedMessage methods */
+void   serialized_message__init
+                     (SerializedMessage         *message);
+size_t serialized_message__get_packed_size
+                     (const SerializedMessage   *message);
+size_t serialized_message__pack
+                     (const SerializedMessage   *message,
+                      uint8_t             *out);
+size_t serialized_message__pack_to_buffer
+                     (const SerializedMessage   *message,
+                      ProtobufCBuffer     *buffer);
+SerializedMessage *
+       serialized_message__unpack
+                     (ProtobufCAllocator  *allocator,
+                      size_t               len,
+                      const uint8_t       *data);
+void   serialized_message__free_unpacked
+                     (SerializedMessage *message,
+                      ProtobufCAllocator *allocator);
 /* --- per-message closures --- */
 
 typedef void (*SerializedUser_Closure)
                  (const SerializedUser *message,
+                  void *closure_data);
+typedef void (*SerializedTimestamp_Closure)
+                 (const SerializedTimestamp *message,
+                  void *closure_data);
+typedef void (*SerializedMessage_Closure)
+                 (const SerializedMessage *message,
                   void *closure_data);
 
 /* --- services --- */
@@ -64,7 +149,10 @@ typedef void (*SerializedUser_Closure)
 
 /* --- descriptors --- */
 
+extern const ProtobufCEnumDescriptor    message_type__descriptor;
 extern const ProtobufCMessageDescriptor serialized_user__descriptor;
+extern const ProtobufCMessageDescriptor serialized_timestamp__descriptor;
+extern const ProtobufCMessageDescriptor serialized_message__descriptor;
 
 PROTOBUF_C__END_DECLS
 
