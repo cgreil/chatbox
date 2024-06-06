@@ -20,11 +20,19 @@
 #include <netinet/in.h>
 #include "../util/connection.h"
 
+typedef struct {
+    fd_set *read_set;
+    int *client_connections;
+    int num_connected;
+} server_data_t;
+
 int run_server();
+
+int poll_clients(server_data_t *server_data);
 
 int setup_server_socket();
 
-void cleanup_server(int *client_fd, int num_connected, int socket_fd);
+void cleanup_server(server_data_t *server_data, int server_socket);
 
 int get_available_sockets(fd_set *sockets, int *monitored_descriptors, size_t num_monitored);
 

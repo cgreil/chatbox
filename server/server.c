@@ -3,74 +3,97 @@
 int main() {
     fprintf(OUTPUT_CHANNEL, "Starting up the server... \n");
 
-    int server_ret = run_server();
-    if (server_ret == -1) {
-        fprintf(OUTPUT_CHANNEL, "Server could not be started. Exiting");
-        exit(EXIT_FAILURE);
-    }
+    run_server();
+    
     return 0;
 }
 
 int run_server() {
-    fprintf(OUTPUT_CHANNEL, "Starting up server \n");
 
     // setting up socket of the server
-    int socket_fd = setup_server_socket();
+    int server_socket = setup_server_socket();
     // store file descriptors of clients
     int client_connections[MAX_CLIENTS];
     size_t num_connected = 0;
+    
+   // setup server data
+   server_data_t *server_data = malloc(sizeof(server_data_t));
+   server_data->client_connections = client_connections; 
+   server_data->num_connected = num_connected;
 
-    // TODO: Cleanup
-    // on_exit(cleanup_server, client_connections, num_connected, socket_fd);
+
     // main server loop
     while (1) {
+        // sleep for 1s to prevent spame
         sleep(1);
+
         // accept client connections on the socket if more clients are still possible
         if (num_connected < MAX_CLIENTS) {
-            int new_client_fd = handle_client_connections(socket_fd);
+            int new_client_fd = handle_client_connections(server_socket);
             // check if client has valid connection
             if (new_client_fd != -1) {
-                client_connections[num_connected] = new_client_fd;
-                num_connected++;
-            }
-        } else {
-            fprintf(OUTPUT_CHANNEL, "Maximal number of clients connected: %zu/%d \n", num_connected, MAX_CLIENTS);
-        }
-
-        // check for readable sockets
-        fd_set readset;
-        int num_readable_fds = get_available_sockets(&readset, client_connections, num_connected);
-        if (num_readable_fds == 0) {
-            // no messages waiting to be received
-            continue;
-        } else {
-            fprintf(OUTPUT_CHANNEL, "Receiving client messages \n");
-        }
-
-        for (int client_id = 0; client_id < num_connected; ++client_id) {
-            // check whether fd is in readset
-            if (!FD_ISSET(client_connections[client_id], &readset)) {
-                continue;
-            }
-            int message_handling = read_msg_from_client(client_connections[client_id], client_id + 1);
-            if (message_handling == -1) {
-                fprintf(ERROR_CHANNEL, "Error when receiving client message. \n");
+                server_data->client_connections[num_connected] = new_client_fd;
+                server_data->num_connected++;
             }
         }
+        else {
+            fprintf(OUTPUT_CHANNEL, "Maximal number of clients connected: [%zu/%d] \n", num_connected, MAX_CLIENTS);
+        }
+      
+        // recieve new client messages 
+        poll_clients(server_data);
+    
     }
+
+
+    // cleanup and shutdown server
+    cleanup_server(server_data, server_socket);
+
     fprintf(OUTPUT_CHANNEL, "Shutting down server \n");
     fflush(OUTPUT_CHANNEL);
 
     return 0;
 }
 
-void cleanup_server(int *client_fd, int num_connected, int socket_fd) {
-    //TODO: Cleanup and add with on_exit
-    //close all file descriptors to clients
-    for (int i = 0; i < num_connected; ++i) {
-        close(client_fd[i]);
+int poll_clients(server_data_t *server_data) {
+ 
+    // check for readable sockets
+    fd_set readset;
+
+
+    int num_readable_fds = get_available_sockets(&readset,
+            server_data->client_connections,
+            server_data->num_connected);
+
+    if (num_readable_fds == 0) {
+        // no messages waiting to be received
+           return -1; 
     }
-    close(socket_fd);
+    else {
+        fprintf(OUTPUT_CHANNEL, "Receiving client messages \n");
+    }
+
+    for (int client_id = 0; client_id < server_data->num_connected; ++client_id) {
+    // check whether fd is in readset
+        if (!FD_ISSET(server_data->client_connections[client_id], &readset)) {
+            continue;
+        }
+        int message_handling = read_msg_from_client(server_data->client_connections[client_id], client_id + 1);
+        if (message_handling == -1) {
+           fprintf(ERROR_CHANNEL, "Error when receiving client message. \n");
+        }
+    }   
+    
+    return 0;
+}
+
+void cleanup_server(server_data_t *server_data, int server_socket) {
+    //close all file descriptors to clients
+    for (int i = 0; i < server_data->num_connected; ++i) {
+        close(server_data->client_connections[i]);
+    }
+    // close server socket itself
+    close(server_socket);
     unlink(SOCKET_PATH);
 }
 

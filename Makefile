@@ -1,6 +1,5 @@
 
-CFLAGS = -Wall -Werror
-all = client.o server.o user.o message.o connection.o console.o client server 
+CFLAGS = -Wall -Werror -O0 -g3
 
 all: client server
 

@@ -13,7 +13,7 @@ int create_user(user_t *user, char *username) {
     }
     size_t buffer_size = strlen(username + 1);
     
-    char *username_buffer = malloc(buffer_size);
+    char *username_buffer = malloc(buffer_size);    
     strncpy(username_buffer, username, buffer_size);
     user->username = username_buffer;
 
@@ -90,7 +90,10 @@ int get_username_input(char *username_buffer) {
         return -1;
     }
     // remove newline from input 
-    strncpy(username_buffer, input_buffer, strlen(input_buffer)); 
+    size_t string_length = strlen(input_buffer);
+    strncpy(username_buffer, input_buffer, string_length); 
+    // write null terminator after last char
+    username_buffer[string_length] = '\0';
     
     return 0;
 }
