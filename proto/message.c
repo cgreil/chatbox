@@ -136,12 +136,10 @@ int serialize_message(serial_packet_t *packet, message_t *message) {
     fprintf(ERROR_CHANNEL,"Writing %zu serialized bytes\n", packed_length); 
     fwrite (serial_message_buffer, packed_length, 1, OUTPUT_CHANNEL);  
 
-    //
+    // add members to packet struct
     packet->frames = serial_message_buffer; 
     packet->length = packed_length;
   
-    free(serial_message_buffer); 
-    //TODO: Instead of directly writing to stdout, return information in a wrapper struct
     return 0;
 }
 
@@ -202,7 +200,12 @@ int deserialize_message(message_t *message, serial_packet_t *packet){
         return -1;
     }
 
+    SerializedMessage *msg;
+    SerializedUser *user;
+    SerializedTimestamp *timestamp;
+
     
+    msg = SerializedMessage__unpack(NULL, , packet->frames);
 
 
     return 0;
