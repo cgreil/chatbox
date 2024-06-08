@@ -29,9 +29,9 @@ typedef struct {
 
 typedef struct {
     // storing the stringified, i.e. serialized message to be sent
-    char *msg_string;
-    size_t msg_length;
-} serialized_msg_t;
+    void *frames;
+    size_t length;
+} serial_packet_t;
 
 int create_message(message_t *message, MESSAGE_TYPE_T msg_type, user_t *sending_user, char **message_content,
                    size_t content_length);
@@ -39,9 +39,15 @@ int create_message(message_t *message, MESSAGE_TYPE_T msg_type, user_t *sending_
 
 int send_message(message_t *message);
 
-int serialize_message(serialized_msg_t *serial_msg, message_t *message_to_serialize);
+int serialize_message(serial_packet_t *packet, message_t *message);
 
-int deserialize_message(serialized_msg_t *serial_msg, message_t *deserialized_message);
+int deserialize_message(message_t *message, serial_packet_t *packet);
+
+int pack_timestamp(struct tm *time, SerializedTimestamp *serial_time); 
+
+int pack_user(user_t *user, SerializedUser *serial_user);
+
+int pack_message(message_t *message, SerializedMessage *serial_message);
 
 int destroy_message(message_t *message);
 
