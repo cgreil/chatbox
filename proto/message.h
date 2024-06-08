@@ -8,7 +8,9 @@
 #include <time.h>
 #include <string.h>
 
-#include "user.h"
+#include "../client/user.h"
+#include "message.pb-c.h"
+
 
 typedef enum {
     SERVER_MESSAGE,
