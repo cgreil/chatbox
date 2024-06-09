@@ -11,7 +11,10 @@ typedef enum {
     CONTENT = 3
 }MESSAGE_PART_T;
 
-int create_message(message_t *message, MESSAGE_TYPE_T msg_type, user_t *sending_user, char **message_content,
+int create_message(message_t *message,
+                   MESSAGE_TYPE_T msg_type,
+                   user_t *sending_user, 
+                   char *message_content,
                    size_t content_length) {
     /**
      * Message creation function. Message type has to be allocated already
@@ -27,58 +30,33 @@ int create_message(message_t *message, MESSAGE_TYPE_T msg_type, user_t *sending_
     if (sending_user == NULL) {
         message->sender = NULL;
     } else {
-        user_t *sender = malloc(sizeof(user_t));
-        // copy user with deepcopy so that msg is independent of calling functions space handling
-        copy_user(sending_user, sender);
-        message->sender = sender;
+        copy_user(message->sender, sending_user);
     }
 
-    if (message_content == NULL || *message_content == NULL) {
+    if (message_content == NULL) {
         message->message_content = NULL;
         message->content_length = 0;
     } else {
-        char *content = malloc(content_length);
-        strncpy(*message_content, content, content_length);
-        message->message_content = content;
+        strncpy(message->message_content, message_content, content_length);
     }
 
     // get raw time first, then transform into localtime
     time_t rawtime;
     time(&rawtime);
-    struct tm *timestamp = malloc(sizeof(struct tm));
-    memcpy(timestamp,localtime(&rawtime), sizeof(struct tm));
-    message->creation_timestamp = timestamp;
+    memcpy(message->creation_timestamp,localtime(&rawtime), sizeof(struct tm));
+    
     return 0;
 }
 
 int destroy_message(message_t *message) {
+    
+    memset(message->message_content, 0, message->content_length);
+    memset(message->sender, 0, sizeof(user_t));
+    memset(message, 0, sizeof(message_t));
 
     free(message->message_content);
     free(message->sender);
-
-    memset(message, 0, sizeof(message_t));
-
-    return 0;
-}
-
-int send_message(message_t *message) {
-
-    if (message == NULL) {
-        fprintf(ERROR_CHANNEL, "Message cannot be null \n");
-        return -1;
-    }
-    if (check_message_valid(message) == -1) {
-        fprintf(ERROR_CHANNEL, "Invalid message");
-        return -1;
-    }
-
-     serialized_message;
-    int ser_ret = serialize_message(&serialized_message, message);
-    if (ser_ret == -1){
-        fprintf(ERROR_CHANNEL, "Sending message failed");
-        return -1;
-    }
-
+    free(message); 
 
     return 0;
 }
@@ -114,10 +92,10 @@ int serialize_message(serial_packet_t *packet, message_t *message) {
     SerializedMessage serial_message = SERIALIZED_MESSAGE__INIT;
 
     // TODO: Improve dependency structure 
-    pack_timestamp(message->creation_timestamp, &serial_time);
-    pack_user(message->sender, &serial_user);
+    prep_pack_timestamp(message->creation_timestamp, &serial_time);
+    prep_pack_user(message->sender, &serial_user);
     // packing message contents for serialization
-    pack_message(message, &serial_message);
+    prep_pack_message(message, &serial_message);
     serial_message.user_type = &serial_user;
     serial_message.creation_timestamp = &serial_time;
    
@@ -143,7 +121,40 @@ int serialize_message(serial_packet_t *packet, message_t *message) {
     return 0;
 }
 
-int pack_timestamp(struct tm *time, SerializedTimestamp *serial_time) {
+int deserialize_message(message_t *message, serial_packet_t *packet){
+
+    if (packet == NULL) {
+        fprintf(ERROR_CHANNEL, "Serialized packet cannot be null \n");
+        return -1;
+    }
+
+    if (message == NULL) {
+        fprintf(ERROR_CHANNEL, "Deserialized msg has to be initialized \n");
+        return -1;
+    }
+
+    SerializedMessage *serial_msg;
+    SerializedUser *serial_user;
+    SerializedTimestamp *serial_timestamp;
+
+    
+    serial_msg = serialized_message__unpack(NULL, packet->length, packet->frames); 
+    serial_user = serial_msg->user_type;
+    serial_timestamp = serial_msg->creation_timestamp;
+
+    prep_unpack_message(message, serial_msg);    
+    prep_unpack_user(message->sender, serial_user);
+    prep_unpack_timestamp(message->creation_timestamp, serial_timestamp);
+    
+    serialized_user__free_unpacked(serial_user, NULL);
+    serialized_timestamp__free_unpacked(serial_timestamp, NULL);
+    serialized_message__free_unpacked(serial_msg, NULL);
+
+
+    return 0;
+}
+
+static int prep_pack_timestamp(struct tm *time, SerializedTimestamp *serial_time) {
 
     serial_time->tm_sec = time->tm_sec;
     serial_time->tm_min = time->tm_min;
@@ -158,7 +169,22 @@ int pack_timestamp(struct tm *time, SerializedTimestamp *serial_time) {
     return 0;
 }
 
-int pack_user(user_t *user, SerializedUser *serial_user) {
+static int prep_unpack_timestamp(struct tm *time, SerializedTimestamp *serial_time) {
+
+    time->tm_sec = serial_time->tm_sec;
+    time->tm_min = serial_time->tm_min;
+    time->tm_hour = serial_time->tm_hour;
+    time->tm_mday = serial_time->tm_mday;
+    time->tm_mon = serial_time->tm_mon;
+    time->tm_year = serial_time->tm_year;
+    time->tm_wday = serial_time->tm_wday;
+    time->tm_yday = serial_time->tm_wday;
+    time->tm_isdst = serial_time->tm_isdst;
+
+    return 0;
+}
+
+static int prep_pack_user(user_t *user, SerializedUser *serial_user) {
 
    serial_user->id = user->user_id; 
    strcpy(serial_user->username, user->username);
@@ -166,7 +192,15 @@ int pack_user(user_t *user, SerializedUser *serial_user) {
    return 0;
 }
 
-int pack_message(message_t *message, SerializedMessage *serial_message) {
+static int prep_unpack_user(user_t *user, SerializedUser *serial_user) {
+
+    user->user_id = serial_user->id;
+    strcpy(user->username, serial_user->username);
+
+    return 0;
+}
+
+static int prep_pack_message(message_t *message, SerializedMessage *serial_message) {
    // Convert Message type to serialized message type
     switch (message->message_type) {
         case SERVER_MESSAGE:
@@ -188,27 +222,30 @@ int pack_message(message_t *message, SerializedMessage *serial_message) {
  
 }
 
-int deserialize_message(message_t *message, serial_packet_t *packet){
-
-    if (packet == NULL) {
-        fprintf(ERROR_CHANNEL, "Serialized packet cannot be null \n");
-        return -1;
+static int prep_unpack_message(message_t *message, SerializedMessage *serial_message) {
+    // unpack serialized types into mesage_t
+    switch(message->message_type) {
+        case MESSAGE_TYPE__SERVER_MESSAGE:
+            message->message_type = SERVER_MESSAGE;
+        break;
+        case MESSAGE_TYPE__PRIVATE_MESSAGE:
+            message->message_type = PRIVATE_MESSAGE;
+        break;
+        case MESSAGE_TYPE__PUBLIC_MESSAGE:
+            message->message_type = PUBLIC_MESSAGE;
+        break;
+        case MESSAGE_TYPE__INVALID_MESSAGE:
+        default:
+            message->message_type = INVALID_MESSAGE;
+        break;
     }
 
-    if (message == NULL) {
-        fprintf(ERROR_CHANNEL, "Deserialized msg has to be initialized \n");
-        return -1;
-    }
-
-    SerializedMessage *msg;
-    SerializedUser *user;
-    SerializedTimestamp *timestamp;
-
-    
-    msg = SerializedMessage__unpack(NULL, , packet->frames);
-
+    strcpy(message->message_content, serial_message->message_content);
+    message->content_length = serial_message->content_length;
 
     return 0;
 }
+
+
 
 

@@ -43,18 +43,21 @@ int serialize_message(serial_packet_t *packet, message_t *message);
 
 int deserialize_message(message_t *message, serial_packet_t *packet);
 
-int pack_timestamp(struct tm *time, SerializedTimestamp *serial_time); 
+static int prep_pack_timestamp(struct tm *time, SerializedTimestamp *serial_time); 
 
-int pack_user(user_t *user, SerializedUser *serial_user);
+static int prep_unpack_timestamp(struct tm *time, SerializedTimestamp *serial_time);
 
-int pack_message(message_t *message, SerializedMessage *serial_message);
+static int prep_pack_user(user_t *user, SerializedUser *serial_user);
+
+static int prep_unpack_user(user_t *user, SerializedUser *serial_user);
+
+static int prep_pack_message(message_t *message, SerializedMessage *serial_message);
+
+static int prep_unpack_message(message_t *message, SerializedMessage *serial_message);
 
 int destroy_message(message_t *message);
 
 static int check_message_valid(message_t *message);
 
-int time_from_string(char *time_string, struct tm *time_struct);
-
-int string_from_time(struct tm *time_struct, char *time_string);
 
 #endif
