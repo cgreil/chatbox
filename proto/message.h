@@ -33,7 +33,7 @@ typedef struct {
     size_t length;
 } serial_packet_t;
 
-int create_message(message_t *message, MESSAGE_TYPE_T msg_type, user_t *sending_user, char **message_content,
+int create_message(message_t *message, MESSAGE_TYPE_T msg_type, user_t *sending_user, char *message_content,
                    size_t content_length);
 
 
