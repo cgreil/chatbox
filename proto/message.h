@@ -5,6 +5,8 @@
 #define INPUT_CHANNEL stdin
 #define ERROR_CHANNEL stderr
 
+#define MAX_MSG_SIZE 2048
+
 #include <time.h>
 #include <string.h>
 

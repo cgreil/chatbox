@@ -42,6 +42,7 @@ int main(void) {
 
     fprintf(OUTPUT_CHANNEL, "Serialized packets: \n");
     fwrite(&packet.frames, 1, packet.length, OUTPUT_CHANNEL);
+    fprintf(OUTPUT_CHANNEL, " \n End of output \n");
 
     exit(EXIT_SUCCESS);
 }

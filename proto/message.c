@@ -25,25 +25,36 @@ int create_message(message_t *message,
         fprintf(ERROR_CHANNEL, "Message may not be null \n");
         return -1;
     }
+
+    // allocate memory for dynamic members
+    message->sender = malloc(sizeof(user_t));
+    message->creation_timestamp = malloc(sizeof(struct tm*));
+    message->message_content = malloc(MAX_MSG_SIZE);
+
+
     message->message_type = msg_type;
 
     if (sending_user == NULL) {
         message->sender = NULL;
     } else {
-        copy_user(message->sender, sending_user);
+        message->sender = sending_user; 
+        //memcpy(message->sender, sending_user, sizeof(user_t));
     }
 
     if (message_content == NULL) {
         message->message_content = NULL;
         message->content_length = 0;
     } else {
-        strncpy(message->message_content, message_content, content_length);
+        //strncpy(message->message_content, message_content, content_length);
+        message->message_content = message_content;
+        message->content_length = content_length;
     }
 
     // get raw time first, then transform into localtime
     time_t rawtime;
     time(&rawtime);
-    memcpy(message->creation_timestamp,localtime(&rawtime), sizeof(struct tm));
+    //memcpy(message->creation_timestamp,localtime(&rawtime), sizeof(struct tm));
+    message->creation_timestamp = localtime(&rawtime);
     
     return 0;
 }
@@ -93,9 +104,13 @@ int serialize_message(serial_packet_t *packet, message_t *message) {
 
     // TODO: Improve dependency structure 
     prep_pack_timestamp(message->creation_timestamp, &serial_time);
+    serial_user.username = malloc(sizeof(char *));
     prep_pack_user(message->sender, &serial_user);
     // packing message contents for serialization
+    serial_message.message_content = malloc(sizeof(char *));
     prep_pack_message(message, &serial_message);
+    
+
     serial_message.user_type = &serial_user;
     serial_message.creation_timestamp = &serial_time;
    
