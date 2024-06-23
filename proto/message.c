@@ -38,14 +38,12 @@ int create_message(message_t *message,
         message->sender = NULL;
     } else {
         message->sender = sending_user; 
-        //memcpy(message->sender, sending_user, sizeof(user_t));
     }
 
     if (message_content == NULL) {
         message->message_content = NULL;
         message->content_length = 0;
     } else {
-        //strncpy(message->message_content, message_content, content_length);
         message->message_content = message_content;
         message->content_length = content_length;
     }
@@ -53,7 +51,6 @@ int create_message(message_t *message,
     // get raw time first, then transform into localtime
     time_t rawtime;
     time(&rawtime);
-    //memcpy(message->creation_timestamp,localtime(&rawtime), sizeof(struct tm));
     message->creation_timestamp = localtime(&rawtime);
     
     return 0;
@@ -61,15 +58,7 @@ int create_message(message_t *message,
 
 int destroy_message(message_t *message) {
     
-    memset(message->message_content, 0, message->content_length);
-    memset(message->sender, 0, sizeof(user_t));
-    memset(message, 0, sizeof(message_t));
-
-    free(message->message_content);
-    free(message->sender);
-    free(message); 
-
-    return 0;
+      return 0;
 }
 
 static int check_message_valid(message_t *message) {
@@ -160,10 +149,9 @@ int deserialize_message(message_t *message, serial_packet_t *packet){
     prep_unpack_message(message, serial_msg);    
     prep_unpack_user(message->sender, serial_user);
     prep_unpack_timestamp(message->creation_timestamp, serial_timestamp);
-    
-    serialized_user__free_unpacked(serial_user, NULL);
-    serialized_timestamp__free_unpacked(serial_timestamp, NULL);
-    serialized_message__free_unpacked(serial_msg, NULL);
+   
+    // freeing message automatically also frees submessages (user and timestamp)
+   serialized_message__free_unpacked(serial_msg, NULL);
 
 
     return 0;
@@ -202,7 +190,8 @@ static int prep_unpack_timestamp(struct tm *time, SerializedTimestamp *serial_ti
 static int prep_pack_user(user_t *user, SerializedUser *serial_user) {
 
    serial_user->id = user->user_id; 
-   strcpy(serial_user->username, user->username);
+   serial_user->username = user->username;
+   //strncpy(serial_user->username, user->username, strlen(user->username)+1);
 
    return 0;
 }
@@ -210,7 +199,7 @@ static int prep_pack_user(user_t *user, SerializedUser *serial_user) {
 static int prep_unpack_user(user_t *user, SerializedUser *serial_user) {
 
     user->user_id = serial_user->id;
-    strcpy(user->username, serial_user->username);
+    user->username = serial_user->username;
 
     return 0;
 }
@@ -232,8 +221,11 @@ static int prep_pack_message(message_t *message, SerializedMessage *serial_messa
             serial_message->message_type = MESSAGE_TYPE__INVALID_MESSAGE;
         break;
     }
-    strcpy(serial_message->message_content, message->message_content);
+    serial_message->message_content = message->message_content;
+    //strncpy(serial_message->message_content, message->message_content, strlen(message->message_content)+1);
     serial_message->content_length = message->content_length;
+
+    return 0;
  
 }
 
@@ -255,7 +247,7 @@ static int prep_unpack_message(message_t *message, SerializedMessage *serial_mes
         break;
     }
 
-    strcpy(message->message_content, serial_message->message_content);
+    message->message_content = serial_message->message_content;
     message->content_length = serial_message->content_length;
 
     return 0;
