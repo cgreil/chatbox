@@ -13,15 +13,10 @@ int main(void) {
    user.user_id = 1;
    user.username = "testuser";
 
-   // setup timestamp
-   time_t rawtime;
-   time(&rawtime);
-   struct tm* time = localtime(&rawtime);
-
     // setup message
     MESSAGE_TYPE_T msg_type = PUBLIC_MESSAGE;
     char *msg_content = "Now I have become Death";
-    size_t msg_content_len = strlen(msg_content);
+    size_t msg_content_len = strlen(msg_content) + 1;
     
     //create message
     message_t message;
@@ -46,12 +41,9 @@ int main(void) {
     fwrite(&packet.frames, 1, packet.length, OUTPUT_CHANNEL);
     fprintf(OUTPUT_CHANNEL, " \n End of output \n");
 
-
+    
+    // this is where message would be sent  
     fprintf(OUTPUT_CHANNEL, "Sending packet ... \n");
-    // simulating sending packet by doing memcopy into new struct
-    //serial_packet_t received_packet;
-    //received_packet.frames = malloc(packet.length);
-    //memcpy(received_packet.frames, packet.frames, packet.length);
     
 
     message_t *deserialized_message = malloc(sizeof(message_t));
@@ -60,7 +52,7 @@ int main(void) {
     
     deserialize_message(deserialized_message, &packet);    
     
-    fprintf(OUTPUT_CHANNEL, "Deserialized message");
+    fprintf(OUTPUT_CHANNEL, "Deserialized message: ");
     fprintf(OUTPUT_CHANNEL, "%s: %s \n", deserialized_message->sender->username, deserialized_message->message_content);
  
 

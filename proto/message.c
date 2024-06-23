@@ -11,6 +11,22 @@ typedef enum {
     CONTENT = 3
 }MESSAGE_PART_T;
 
+
+// Forward declarations for static methods
+
+
+static int prep_pack_timestamp(struct tm *time, SerializedTimestamp *serial_time);
+
+static int prep_unpack_timestamp(struct tm *time, SerializedTimestamp *serial_time);
+
+static int prep_pack_user(user_t *user, SerializedUser *serial_user);
+
+static int prep_unpack_user(user_t *user, SerializedUser *serial_user);
+
+static int prep_pack_message(message_t *message, SerializedMessage *serial_msg);
+
+static int prep_unpack_message(message_t *message, SerializedMessage *serial_msg);
+
 int create_message(message_t *message,
                    MESSAGE_TYPE_T msg_type,
                    user_t *sending_user, 
@@ -61,23 +77,6 @@ int destroy_message(message_t *message) {
       return 0;
 }
 
-static int check_message_valid(message_t *message) {
-
-    if (message == NULL) {
-        fprintf(ERROR_CHANNEL, "Message may not be null \n");
-        return -1;
-    }
-    if (message->message_content == NULL || message->content_length == 0) {
-        fprintf(ERROR_CHANNEL, "Message content may not be empty \n");
-        return -1;
-    }
-    if (message->sender == NULL) {
-        fprintf(ERROR_CHANNEL, "Message sender cannot be null");
-        return -1;
-    }
-    // msg is valid
-    return 0;
-}
 
 int serialize_message(serial_packet_t *packet, message_t *message) {
     
@@ -125,7 +124,7 @@ int serialize_message(serial_packet_t *packet, message_t *message) {
     return 0;
 }
 
-int deserialize_message(message_t *message, serial_packet_t *packet){
+int deserialize_message(message_t *message, serial_packet_t *packet) {
 
     if (packet == NULL) {
         fprintf(ERROR_CHANNEL, "Serialized packet cannot be null \n");
